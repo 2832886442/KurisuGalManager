@@ -7,6 +7,9 @@
 
 一款基于 **Tauri 2.0** 的纯本地 Galgame 管理工具，专为 Windows 11 设计。轻松整理、启动和记录您的 Galgame 收藏，所有数据完全离线存储，无任何网络请求，安全隐私。
 
+![](https://github.com/2832886442/CleanGal/blob/main/Screenshoot/QQ20260717-163303.png)
+
+
 ---
 
 ## ✨ 主要功能
