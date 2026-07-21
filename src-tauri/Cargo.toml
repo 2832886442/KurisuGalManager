@@ -1,12 +1,12 @@
 [package]
-name = "galmanager"
-version = "1.2.4"
-description = "A Galgame Manager Tauri App"
-authors = ["you"]
+name = "kurisugal"
+version = "1.2.5"
+description = "KurisuGal - A Galgame Manager Tauri App"
+authors = ["CoolSomeBody"]
 edition = "2021"
 
 [lib]
-name = "galmanager_lib"
+name = "kurisugal_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

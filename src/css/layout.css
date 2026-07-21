@@ -73,14 +73,16 @@
 .brand-name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: 0.15em;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
   background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple), var(--neon-magenta));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: none;
   animation: neonTextBreath 3s ease-in-out infinite;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .brand-badge {
@@ -90,11 +92,11 @@
   background: var(--accent-light);
   border: 1px solid var(--neon-blue-dim);
   color: var(--neon-blue);
-  padding: 2px 10px;
+  padding: 2px 8px;
   border-radius: 20px;
-  margin-left: auto;
   font-weight: 600;
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 /* ── 版本号 ── */

@@ -1,4 +1,4 @@
-// utils.js - CleanGal 工具函数模块
+// utils.js - KurisuGal 工具函数模块
 
 /**
  * 防抖函数

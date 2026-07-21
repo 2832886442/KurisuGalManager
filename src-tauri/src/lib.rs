@@ -58,7 +58,7 @@ pub fn run() {
                 log::warn!("旧数据迁移失败: {}", e);
             }
 
-            log::info!("CleanGal v1.2.4 启动完成");
+            log::info!("KurisuGal v1.2.5 启动完成");
             Ok(())
         })
         .run(tauri::generate_context!())

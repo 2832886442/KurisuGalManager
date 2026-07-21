@@ -10,7 +10,7 @@
 //!           ├── Saves/               ← 存档（预留）
 //!           └── Cache/               ← 临时缓存
 //!
-//!   %APPDATA%/CleanGal/
+//!   %APPDATA%/KurisuGal/
 //!     ├── Config/
 //!     │   ├── System/path_config.json ← 数据路径配置
 //!     │   └── User/setting.json       ← 用户偏好
@@ -75,30 +75,30 @@ fn set_configured_data_root(path: Option<String>) {
 
 // ==================== 路径获取函数 ====================
 
-/// 获取系统配置目录 (%APPDATA%/CleanGal/Config)
+/// 获取系统配置目录 (%APPDATA%/KurisuGal/Config)
 pub fn system_config_dir() -> PathBuf {
     dirs_sys_config()
-        .join("CleanGal")
+        .join("KurisuGal")
         .join("Config")
         .join("System")
 }
 
-/// 获取用户配置目录 (%APPDATA%/CleanGal/Config/User)
+/// 获取用户配置目录 (%APPDATA%/KurisuGal/Config/User)
 pub fn user_config_dir() -> PathBuf {
     dirs_sys_config()
-        .join("CleanGal")
+        .join("KurisuGal")
         .join("Config")
         .join("User")
 }
 
-/// 获取日志目录 (%APPDATA%/CleanGal/Logs)
+/// 获取日志目录 (%APPDATA%/KurisuGal/Logs)
 pub fn logs_dir() -> PathBuf {
-    dirs_sys_config().join("CleanGal").join("Logs")
+    dirs_sys_config().join("KurisuGal").join("Logs")
 }
 
-/// 获取备份目录 (%APPDATA%/CleanGal/Backup)
+/// 获取备份目录 (%APPDATA%/KurisuGal/Backup)
 pub fn backup_dir() -> PathBuf {
-    dirs_sys_config().join("CleanGal").join("Backup")
+    dirs_sys_config().join("KurisuGal").join("Backup")
 }
 
 /// 获取 path_config.json 路径

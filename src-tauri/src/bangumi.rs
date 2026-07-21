@@ -3,7 +3,7 @@
 //! 搜索使用旧版 GET API (`/search/subject/{keyword}`)，因为 v0 API 过滤了 NSFW 游戏。
 //! 详情获取使用双轨策略：优先 v0 API（有标签+平台），失败时回退旧 API。
 //!
-//! 调试追踪：所有 API 请求/响应自动写入 %APPDATA%/CleanGal/Logs/bangumi_trace.jsonl
+//! 调试追踪：所有 API 请求/响应自动写入 %APPDATA%/KurisuGal/Logs/bangumi_trace.jsonl
 
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ use std::io::Write;
 use std::sync::Mutex;
 
 const BGM_API_BASE: &str = "https://api.bgm.tv";
-const USER_AGENT: &str = "CleanGal/0.3 (https://github.com; galgame-manager)";
+const USER_AGENT: &str = "KurisuGal/1.2.5 (https://github.com/dleastzh/KurisuGal; galgame-manager)";
 const REQUEST_TIMEOUT: u64 = 15;
 const CONNECT_TIMEOUT: u64 = 8;
 

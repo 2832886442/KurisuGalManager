@@ -348,7 +348,7 @@ pub async fn copy_cover(source_path: String, game_id: String) -> Result<String, 
     .map_err(to_frontend_error)
 }
 
-/// 备份数据到 %APPDATA%/CleanGal/Backup/
+/// 备份数据到 %APPDATA%/KurisuGal/Backup/
 #[tauri::command]
 pub async fn backup_data() -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || -> Result<String, AppError> {
@@ -358,7 +358,7 @@ pub async fn backup_data() -> Result<String, String> {
             .map_err(|e| AppError::wrap(ErrorCode::BackupFailed, "创建备份目录失败", e))?;
 
         let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
-        let backup_file = backup_dir.join(format!("clean_gal_backup_{}.json", timestamp));
+        let backup_file = backup_dir.join(format!("kurisu_gal_backup_{}.json", timestamp));
 
         let mut all_data = serde_json::Map::new();
         let games_path = crate::path_manager::games_file();

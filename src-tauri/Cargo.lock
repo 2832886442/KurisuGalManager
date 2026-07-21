@@ -1254,29 +1254,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "galmanager"
-version = "1.2.4"
-dependencies = [
- "anyhow",
- "auto-launch",
- "base64 0.21.7",
- "chrono",
- "log",
- "reqwest 0.12.28",
- "rfd",
- "serde",
- "serde_json",
- "sysinfo",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "thiserror 1.0.69",
- "tokio",
- "urlencoding",
- "walkdir",
-]
-
-[[package]]
 name = "gdk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2063,6 +2040,29 @@ dependencies = [
  "bitflags 2.13.1",
  "serde",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "kurisugal"
+version = "1.2.5"
+dependencies = [
+ "anyhow",
+ "auto-launch",
+ "base64 0.21.7",
+ "chrono",
+ "log",
+ "reqwest 0.12.28",
+ "rfd",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "thiserror 1.0.69",
+ "tokio",
+ "urlencoding",
+ "walkdir",
 ]
 
 [[package]]

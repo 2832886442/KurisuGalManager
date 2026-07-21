@@ -1,7 +1,7 @@
 //! 操作日志模块
 //! 将用户操作和 API 调用记录到日志文件，方便问题追溯
 //!
-//! 日志文件位于 %APPDATA%/CleanGal/Logs/operation_log.jsonl
+//! 日志文件位于 %APPDATA%/KurisuGal/Logs/operation_log.jsonl
 //!
 //! 日志格式（每行一条 JSON）：
 //! { "time": "YYYY-MM-DD HH:MM:SS.sss", "module": "search", "action": "search_start", "detail": { "keyword": "xxx" } }

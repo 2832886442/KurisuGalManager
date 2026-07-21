@@ -1,4 +1,4 @@
-// main.js - CleanGal Galgame 管理器 (优化版)
+// main.js - KurisuGal Galgame 管理器 (优化版)
 import { debounce, showToast, escapeHtml, setLoading, formatError } from './js/utils.js';
 
 const invoke = window.__TAURI__.core.invoke;

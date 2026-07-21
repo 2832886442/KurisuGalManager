@@ -1,9 +1,9 @@
-# CleanGal — Galgame 管理器
+# KurisuGal — Galgame 管理器
 
 基于 **Tauri 2 + Rust** 构建的桌面端 Galgame（视觉小说）管理工具，支持游戏库管理、一键启动、游玩时间统计、Bangumi 数据查询、多分类标签系统等功能，配备赛博朋克风格双主题 UI。
 
 <p align="center">
-  <img src="Screenshoot/QQ20260721-140800.png" alt="CleanGal 主界面" width="800" />
+  <img src="Screenshoot/QQ20260721-140800.png" alt="KurisuGal 主界面" width="800" />
 </p>
 
 ## 功能特性
@@ -70,7 +70,7 @@
 
 ```
 ┌──────────────────────────────────────────────────┐
-│                   CleanGal                        │
+│                   KurisuGal                        │
 ├──────────────┬───────────────────────────────────┤
 │   前端 (Web)  │         后台 (Rust / Tauri)        │
 │              │                                  │
@@ -140,18 +140,18 @@
 
 ```
 {INSTALL_DIR}/                          ← 程序安装目录
-├── CleanGal.exe
+├── KurisuGal.exe
 ├── Data/                               ← 游戏数据根目录（可配置迁移）
 │   ├── game_list.json                  ← 游戏列表
 │   ├── CoverArt/                       ← 封面图片（按 game_id.jpg 命名）
 │   ├── Saves/                          ← 存档（预留）
 │   └── Cache/                          ← 临时缓存
 
-%APPDATA%/CleanGal/                     ← C 盘系统配置
+%APPDATA%/KurisuGal/                     ← C 盘系统配置
 ├── Config/System/path_config.json      ← 数据路径配置
 ├── Config/User/setting.json            ← 用户设置
 ├── Logs/operation_log.jsonl            ← 操作日志
-└── Backup/clean_gal_backup_*.json      ← 数据备份
+└── Backup/kurisu_gal_backup_*.json      ← 数据备份
 ```
 
 **设计原则**：C 盘最小化——仅存 KB 级配置数据；MB 级封面和游戏数据存程序目录；数据目录可在设置中整体迁移。
@@ -236,8 +236,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/dleastzh/CleanGalManager.git
-cd CleanGalManager
+git clone https://github.com/dleastzh/KurisuGal.git
+cd KurisuGal
 
 # 安装前端依赖
 npm install
@@ -254,8 +254,8 @@ npm run tauri build
 ```
 
 构建产物位于 `src-tauri/target/release/bundle/`：
-- `msi/CleanGal_1.2.4_x64_en-US.msi`
-- `nsis/CleanGal_1.2.4_x64-setup.exe`
+- `msi/KurisuGal_1.2.5_x64_en-US.msi`
+- `nsis/KurisuGal_1.2.5_x64-setup.exe`
 
 ### 发布配置
 
@@ -313,7 +313,7 @@ Release 构建使用最高优化级别：
 
 ### Q: 游戏启动后没有记录游玩时间？
 
-确保通过 CleanGal 启动游戏。如果游戏有启动器请设置启动器路径。游戏退出时自动记录本次游玩时间。
+确保通过 KurisuGal 启动游戏。如果游戏有启动器请设置启动器路径。游戏退出时自动记录本次游玩时间。
 
 ### Q: Bangumi 搜索无结果或报错？
 
@@ -326,7 +326,7 @@ Release 构建使用最高优化级别：
 ### Q: 数据存储在哪里？
 
 - 游戏数据：默认 `程序目录/Data/`，可在设置中修改
-- 配置文件：`%APPDATA%/CleanGal/Config/`
+- 配置文件：`%APPDATA%/KurisuGal/Config/`
 - 可通过「备份数据」导出完整 JSON
 
 ### Q: 如何更换主题？
@@ -339,8 +339,8 @@ Release 构建使用最高优化级别：
 
 | 项目 | 内容 |
 |------|------|
-| 当前版本 | v1.2.4 |
-| 项目名 | CleanGalManager |
+| 当前版本 | v1.2.5 |
+| 项目名 | KurisuGal |
 | 作者 | CoolSomeBody |
 | 技术栈 | Tauri 2 + Rust + 原生 Web 前端 |
 | 许可证 | MIT |

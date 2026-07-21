@@ -1083,6 +1083,19 @@
   font-weight: 500;
 }
 
+.about-link {
+  font-family: var(--font-mono);
+  color: var(--neon-blue);
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.about-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 /* ==================== Toast 通知 ==================== */
 .toast-container {
   position: fixed;
