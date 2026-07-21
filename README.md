@@ -236,8 +236,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/dleastzh/KurisuGal.git
-cd KurisuGal
+git clone https://github.com/2832886442/KurisuGalManager.git
+cd KurisuGalManager
 
 # 安装前端依赖
 npm install
