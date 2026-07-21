@@ -3,7 +3,7 @@
 基于 **Tauri 2 + Rust** 构建的桌面端 Galgame（视觉小说）管理工具，支持游戏库管理、一键启动、游玩时间统计、Bangumi 数据查询、多分类标签系统等功能，配备赛博朋克风格双主题 UI。
 
 <p align="center">
-  <img src="Screenshoot/QQ20260717-163303.png" alt="CleanGal 主界面" width="800" />
+  <img src="Screenshoot/QQ20260721-140800.png" alt="CleanGal 主界面" width="800" />
 </p>
 
 ## 功能特性
