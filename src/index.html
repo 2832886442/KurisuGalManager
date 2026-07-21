@@ -3,13 +3,28 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Galgame 管理器</title>
   <script type="module" src="/main.js" defer></script>
 </head>
 
 <body>
+  <!-- ===== Toast 通知容器 ===== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ===== 全局加载遮罩 ===== -->
+  <div class="global-loader" id="global-loader" style="display:none;">
+    <div class="loader-spinner"></div>
+    <span class="loader-text" id="loader-text">加载中...</span>
+  </div>
+
   <!-- ===== 应用容器 ===== -->
   <div id="app" class="app">
 
@@ -27,6 +42,7 @@
         <span class="brand-name">Galgame</span>
         <span class="brand-badge">管理器</span>
       </div>
+      <div class="brand-version">v1.2.4</div>
 
       <nav class="sidebar-nav">
         <div class="nav-section">
@@ -48,6 +64,9 @@
         <div class="nav-section nav-actions">
           <button class="nav-action-btn" id="btn-add-game" title="添加游戏">
             <span>＋</span> 添加游戏
+          </button>
+          <button class="nav-action-btn highlight" id="btn-manage-cats" title="管理分类">
+            <span>📂</span> 管理分类
           </button>
           <button class="nav-action-btn" id="btn-settings" title="设置">
             <span>⚙</span> 设置
@@ -72,6 +91,15 @@
           <span class="game-count" id="game-count">0 款</span>
         </div>
         <div class="toolbar-right">
+          <button class="batch-toggle-btn" id="batch-toggle" title="批量选择模式">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span class="batch-label">批量选择</span>
+          </button>
           <div class="search-box">
             <span class="search-icon">🔍</span>
             <input type="text" id="search-input" placeholder="搜索游戏名称..." />
@@ -96,7 +124,21 @@
         </div>
       </header>
 
+      <!-- ===== 批量操作栏 ===== -->
+      <div class="batch-bar" id="batch-bar" style="display:none;">
+        <span class="batch-info" id="batch-info">已选 0 项</span>
+        <button class="btn-cancel btn-sm" id="batch-select-all">全选当前</button>
+        <div class="batch-actions">
+          <select id="batch-category-select" class="batch-select">
+            <option value="">-- 移动到分类 --</option>
+          </select>
+          <button class="btn-primary btn-sm" id="batch-apply">应用</button>
+        </div>
+        <button class="btn-cancel btn-sm" id="batch-cancel">取消</button>
+      </div>
+
       <section class="game-grid" id="game-grid"></section>
+      <div class="pagination" id="pagination" style="display:none;"></div>
 
       <div class="empty-state" id="empty-state" style="display: none;">
         <div class="empty-icon">🎮</div>
@@ -120,6 +162,28 @@
     <div class="modal-content add-modal">
       <button class="modal-close" id="add-close">✕</button>
       <h3 class="add-title">添加新游戏</h3>
+
+      <!-- ===== Bangumi 查询区域 ===== -->
+      <div class="bgm-search-section" id="bgm-search-section">
+        <div class="bgm-network-notice">
+          <span class="notice-icon">🌐</span>
+          <span>Bangumi 为境外网站，请确保已开启科学上网工具，否则搜索功能可能无法正常使用。</span>
+        </div>
+        <div class="bgm-search-bar">
+          <input type="text" id="bgm-search-input" placeholder="在 Bangumi 搜索游戏，自动填充封面与简介..." autocomplete="off" />
+          <button type="button" class="btn-primary btn-sm" id="bgm-search-btn">搜索</button>
+          <button type="button" class="btn-cancel btn-sm" id="bgm-search-cancel" style="display:none;">取消</button>
+        </div>
+        <div class="bgm-results" id="bgm-results" style="display:none;"></div>
+        <div class="bgm-direct-id" id="bgm-direct-id"
+          style="display:none;margin-top:6px;font-size:0.8rem;color:var(--text-muted);">
+          或直接输入 Bangumi 条目 ID：
+          <input type="number" id="bgm-direct-id-input" placeholder="如 1126"
+            style="width:80px;margin:0 4px;padding:2px 4px;font-size:0.8rem;" />
+          <button type="button" class="btn-primary btn-sm" id="bgm-direct-id-btn">获取</button>
+        </div>
+      </div>
+
       <form id="add-form" autocomplete="off">
         <div class="form-group">
           <label>游戏名称 *</label>
@@ -138,9 +202,12 @@
         </div>
         <div class="form-group">
           <label>分类</label>
-          <select id="add-category">
-            <option value="未分类">未分类</option>
-          </select>
+          <div class="cat-input-row">
+            <input type="text" id="add-category" list="category-datalist" placeholder="选择或输入新分类" autocomplete="off"
+              style="flex:1;" />
+            <button type="button" class="btn-cat-new" id="add-cat-new" title="新建分类">＋ 新建</button>
+          </div>
+          <datalist id="category-datalist"></datalist>
         </div>
         <div class="form-group">
           <label>标签（逗号分隔）</label>
@@ -204,10 +271,29 @@
             <option value="1.2">120%</option>
           </select>
         </div>
+        <div class="setting-row">
+          <label>每页显示</label>
+          <select id="page-size-setting">
+            <option value="12">12 个</option>
+            <option value="24" selected>24 个</option>
+            <option value="48">48 个</option>
+            <option value="96">96 个</option>
+          </select>
+        </div>
       </div>
 
       <div class="settings-section">
         <h4>💾 数据管理</h4>
+        <div class="setting-row setting-row-wrap">
+          <label>数据存储路径</label>
+          <div class="data-path-display" id="data-path-display">
+            <span class="data-path-text" id="data-path-text">加载中...</span>
+            <button type="button" class="btn-browse" id="btn-data-root-browse" title="选择新路径">📂 浏览</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="hint data-path-info" id="data-dir-info">加载中...</span>
+        </div>
         <div class="setting-row">
           <button class="btn-secondary" id="btn-backup">📤 备份数据</button>
           <button class="btn-secondary" id="btn-restore">📥 恢复数据</button>
@@ -247,8 +333,76 @@
         <button class="btn-primary" id="settings-save">保存设置</button>
         <button class="btn-cancel" id="settings-cancel">取消</button>
       </div>
+
+      <div class="settings-section about-section">
+        <h4>ℹ️ 关于</h4>
+        <div class="about-info">
+          <div class="about-row"><span class="about-label">软件名称</span><span class="about-value">CleanGal Galgame
+              管理器</span></div>
+          <div class="about-row"><span class="about-label">版本</span><span class="about-value">v1.2.4</span></div>
+          <div class="about-row"><span class="about-label">制作人</span><span class="about-value">CoolSomeBody</span></div>
+        </div>
+      </div>
     </div>
   </div>
+  <!-- ===== 分类管理弹窗 ===== -->
+  <div class="modal-overlay" id="cats-overlay">
+    <div class="modal-content" style="max-width:500px;">
+      <button class="modal-close" id="cats-close">✕</button>
+      <h3 style="margin-bottom:16px;">📂 管理分类</h3>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <input type="text" id="new-cat-input" placeholder="输入新分类名称"
+          style="flex:1;padding:8px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-primary);color:var(--text-primary);" />
+        <button class="btn-primary btn-sm" id="btn-create-cat">新建</button>
+      </div>
+      <div id="cat-manage-list" style="max-height:300px;overflow-y:auto;"></div>
+      <div class="settings-footer" style="margin-top:12px;">
+        <button class="btn-cancel" id="cats-cancel">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 数据迁移确认弹窗 ===== -->
+  <div class="modal-overlay" id="migrate-confirm-overlay" style="display:none;">
+    <div class="modal-content confirm-modal" id="migrate-confirm-modal">
+      <button class="modal-close" id="migrate-confirm-close">✕</button>
+      <h3 class="confirm-title">⚠️ 更改数据存储路径</h3>
+      <div class="confirm-body">
+        <div class="confirm-section">
+          <h4>风险提示</h4>
+          <ul>
+            <li>更改路径后，系统将自动迁移所有游戏数据和封面文件</li>
+            <li>迁移过程中请勿关闭程序，否则可能导致数据丢失</li>
+            <li>建议在迁移前先进行一次数据备份</li>
+          </ul>
+        </div>
+        <div class="confirm-section confirm-paths">
+          <div class="confirm-path-row">
+            <span class="confirm-path-label">当前路径</span>
+            <span class="confirm-path-value" id="confirm-old-path">-</span>
+          </div>
+          <div class="confirm-path-arrow">↓</div>
+          <div class="confirm-path-row">
+            <span class="confirm-path-label">新路径</span>
+            <span class="confirm-path-value" id="confirm-new-path">-</span>
+          </div>
+        </div>
+        <div class="confirm-section confirm-stats">
+          <span class="confirm-stat" id="confirm-stat-files">文件: -</span>
+          <span class="confirm-stat" id="confirm-stat-covers">封面: -</span>
+          <span class="confirm-stat" id="confirm-stat-size">大小: -</span>
+        </div>
+        <div class="confirm-section" id="confirm-error-section" style="display:none;">
+          <p class="confirm-error-text" id="confirm-error-text"></p>
+        </div>
+      </div>
+      <div class="confirm-footer">
+        <button class="btn-cancel" id="migrate-confirm-cancel">取消</button>
+        <button class="btn-primary" id="migrate-confirm-ok">确认迁移</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>

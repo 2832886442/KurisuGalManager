@@ -1,0 +1,576 @@
+/* ============================================================
+   layout.css - 布局、侧边栏、主内容、工具栏、游戏网格
+   ============================================================ */
+
+/* ==================== 布局 ==================== */
+.app {
+  display: flex;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==================== 侧边栏 ==================== */
+.sidebar {
+  width: 260px;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px 16px;
+  flex-shrink: 0;
+  transition: background var(--transition), border var(--transition);
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
+}
+
+/* 侧边栏右侧发光竖线 */
+.sidebar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg,
+      transparent 0%,
+      var(--neon-blue) 15%,
+      var(--neon-purple) 50%,
+      var(--neon-blue) 85%,
+      transparent 100%);
+  opacity: 0.5;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  padding-left: 6px;
+}
+
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
+.brand-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.15em;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple), var(--neon-magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  animation: neonTextBreath 3s ease-in-out infinite;
+}
+
+.brand-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  background: var(--accent-light);
+  border: 1px solid var(--neon-blue-dim);
+  color: var(--neon-blue);
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-left: auto;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ── 版本号 ── */
+.brand-version {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  margin-top: -18px;
+  margin-bottom: 20px;
+  padding-left: 52px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.2);
+  border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.4);
+}
+
+.nav-section {
+  margin-bottom: 24px;
+}
+
+.nav-section-title {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  padding-left: 6px;
+  font-weight: 600;
+}
+
+.nav-list {
+  list-style: none;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+  color: var(--text-secondary);
+  gap: 10px;
+  margin-bottom: 2px;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.nav-item:hover {
+  background: rgba(0, 240, 255, 0.06);
+  border-color: rgba(0, 240, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.25);
+  color: var(--neon-blue);
+  font-weight: 600;
+}
+
+/* 激活项左侧发光条 */
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--neon-blue);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 10px var(--neon-blue), 0 0 4px var(--neon-blue);
+}
+
+.nav-item .nav-icon {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.nav-item .nav-label {
+  font-family: var(--font-content);
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.nav-item .nav-count {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: rgba(0, 240, 255, 0.08);
+  padding: 0 8px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border: 1px solid rgba(0, 240, 255, 0.08);
+}
+
+.nav-item.active .nav-count {
+  background: rgba(0, 240, 255, 0.18);
+  color: var(--neon-blue);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+/* ── 标签云 ── */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.tag-item {
+  font-family: var(--font-content);
+  background: var(--bg-card);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid var(--border-color);
+}
+
+.tag-item:hover {
+  background: rgba(179, 0, 255, 0.15);
+  border-color: rgba(179, 0, 255, 0.4);
+  color: var(--neon-purple);
+  box-shadow: 0 0 8px rgba(179, 0, 255, 0.2);
+}
+
+.tag-item.active {
+  background: rgba(179, 0, 255, 0.2);
+  color: var(--neon-purple);
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 12px rgba(179, 0, 255, 0.35), inset 0 0 6px rgba(179, 0, 255, 0.15);
+}
+
+/* ── 侧边栏操作按钮 ── */
+.nav-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-action-btn {
+  font-family: var(--font-sans);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.nav-action-btn:hover {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.35);
+  color: var(--neon-blue);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+}
+
+.nav-action-btn.highlight {
+  background: rgba(179, 0, 255, 0.1);
+  border-color: rgba(179, 0, 255, 0.35);
+  color: var(--neon-purple);
+  font-weight: 600;
+}
+
+.nav-action-btn.highlight:hover {
+  background: rgba(179, 0, 255, 0.2);
+  color: #d65aff;
+  box-shadow: 0 0 16px rgba(179, 0, 255, 0.3);
+}
+
+.nav-action-btn span {
+  font-size: 1.1rem;
+}
+
+/* ── 侧边栏底部 ── */
+.sidebar-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 240, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-teal);
+  box-shadow: 0 0 8px var(--neon-teal), 0 0 4px var(--neon-teal);
+  display: inline-block;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-left: auto;
+  color: var(--text-secondary);
+  transition: all var(--transition);
+}
+
+.theme-toggle:hover {
+  color: var(--neon-blue);
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+/* ==================== 主内容区 ==================== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 28px 28px;
+  overflow: hidden;
+  background: transparent;
+  transition: background var(--transition);
+  position: relative;
+  z-index: 1;
+}
+
+/* ==================== 工具栏 ==================== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--bg-toolbar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+  transition: background var(--transition);
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-primary);
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.3), 0 0 4px rgba(0, 240, 255, 0.2);
+}
+
+.game-count {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── 搜索框 ── */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border-radius: 8px;
+  padding: 0 14px;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition);
+}
+
+.search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.27), inset 0 0 8px rgba(0, 240, 255, 0.06);
+  animation: searchPulse 2s ease-in-out infinite;
+}
+
+.search-icon {
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  padding: 8px 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  outline: none;
+  width: 180px;
+  font-family: var(--font-sans);
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+/* ── 视图切换 ── */
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input);
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.view-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.view-btn:hover {
+  color: var(--accent);
+  border-color: var(--border-color);
+}
+
+.view-btn.active {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+}
+
+.view-btn svg {
+  display: block;
+}
+
+/* ==================== 游戏网格 ==================== */
+.game-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.game-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.game-grid::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.15);
+  border-radius: 4px;
+}
+
+.game-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.3);
+}
+
+.game-grid.grid-view {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.game-grid.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-grid.list-view .game-card {
+  display: flex;
+  flex-direction: row;
+  height: 120px;
+}
+
+.game-grid.list-view .card-cover {
+  width: 100px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.game-grid.list-view .card-cover img {
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+}
+
+.game-grid.list-view .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 18px;
+}
+
+.game-grid.list-view .card-footer {
+  margin-top: 4px;
+}
+
+/* ==================== 空状态 ==================== */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.3));
+}
+
+.empty-state h3 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.empty-state p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+/* ── 虚拟滚动提示 ── */
+.virtual-scroll-hint {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 16px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  border: 1px dashed rgba(0, 240, 255, 0.15);
+}

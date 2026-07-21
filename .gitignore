@@ -21,4 +21,6 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+# Tauri build artifacts
+src-tauri/bangumi_trace.jsonl
+src-tauri/operation_log.jsonl

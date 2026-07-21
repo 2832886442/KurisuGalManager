@@ -1,0 +1,39 @@
+/* ============================================================
+   fonts.css - 字体变量体系（全部使用系统自带字体）
+   日文内容区域使用系统 CJK 字体避免 tofu
+   ============================================================ */
+
+/* ==================== 字体变量体系 ==================== */
+
+:root {
+  /*
+   * --font-sans / --font-ui:  通用 UI 字体（按钮、工具栏、导航、设置面板）
+   * --font-heading:           标题 / 展示字体（品牌名、页面标题、弹窗标题）
+   * --font-content:           内容字体 — 用于可能出现日文字符的区域
+   *                           （游戏名、别名、简介、标签、分类名、Bangumi 结果）
+   *                           使用系统 CJK 字体避免缺字
+   * --font-mono:              等宽字体（版本号、游戏计数、时间、代码块）
+   */
+
+  /* 通用 UI */
+  --font-ui: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC',
+             'Yu Gothic', 'Meiryo', sans-serif;
+
+  /* 标题展示 */
+  --font-heading: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC',
+                  'Yu Gothic', 'Meiryo', sans-serif;
+
+  /* 内容文字 — 日文安全 */
+  --font-content: 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC',
+                  'Yu Gothic', 'Meiryo', 'MS PGothic',
+                  'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+
+  /* 等宽 */
+  --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Consolas',
+               'Courier New', 'Noto Sans Mono CJK SC', monospace;
+
+  /* 兼容旧变量名 */
+  --font: var(--font-ui);
+  --font-display: var(--font-heading);
+  --font-sans: var(--font-ui);
+}

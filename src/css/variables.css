@@ -1,0 +1,129 @@
+/* ============================================================
+   variables.css - CSS 自定义属性
+   :root     = 亮色主题（WCAG AA 级对比度）
+   html.dark = 暗色赛博朋克主题
+   ============================================================ */
+
+/* ==================== 亮色主题（默认） ==================== */
+
+:root {
+  /* ── 背景 ── */
+  --bg-deep: #edf0f5;
+  --bg-dark: #dde1e8;
+  --bg-mid: #f7f8fc;
+  --bg-card: rgba(255, 255, 255, 0.78);
+  --bg-card-hover: rgba(255, 255, 255, 0.96);
+  --bg-sidebar: rgba(237, 240, 245, 0.85);
+  --bg-toolbar: rgba(255, 255, 255, 0.65);
+  --bg-input: rgba(242, 244, 248, 0.88);
+  --bg-overlay: rgba(0, 0, 0, 0.25);
+  --bg-glass: rgba(255, 255, 255, 0.78);
+
+  /* ── 文字 — WCAG AA: #1a1c1e 对比度 ~16:1 / #3b3f46 ~7.5:1 / #6b7078 ~4.5:1 ── */
+  --text-primary: #1a1c1e;
+  --text-secondary: #3b3f46;
+  --text-muted: #6b7078;
+
+  /* ── 边框与阴影 ── */
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-glow: rgba(120, 60, 200, 0.18);
+  --shadow-neon-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-neon-md: 0 4px 18px rgba(0, 0, 0, 0.1);
+  --shadow-neon-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 6px 28px rgba(0, 0, 0, 0.15);
+
+  /* ── 圆角 ── */
+  --radius: 8px;
+  --radius-card: 10px;
+
+  /* ── 过渡 ── */
+  --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* ── 状态色（亮色版） ── */
+  --status-playing: #0078d4;
+  --status-completed: #0d9488;
+  --status-shelved: #8b3fcf;
+
+  /* ── 霓虹装饰色（亮色模式下仍保留一定饱和度作为点缀） ── */
+  --neon-blue: #0080d0;
+  --neon-purple: #8b3fcf;
+  --neon-magenta: #d6336c;
+  --neon-teal: #0d9488;
+  --neon-orange: #ea580c;
+  --neon-blue-dim: rgba(0, 128, 208, 0.2);
+  --neon-purple-dim: rgba(139, 63, 207, 0.2);
+  --neon-magenta-dim: rgba(214, 51, 108, 0.15);
+
+  /* ── 核心 accent（用于按钮、导航激活态等关键 UI） ── */
+  --accent: #0078d4;
+  --accent-hover: #005a9e;
+  --accent-light: rgba(0, 120, 212, 0.12);
+
+  /* ── 兼容别名 ── */
+  --bg-primary: var(--bg-mid);
+  --bg-secondary: rgba(248, 249, 252, 0.92);
+  --shadow-sm: var(--shadow-neon-sm);
+  --shadow-md: var(--shadow-neon-md);
+  --shadow-lg: var(--shadow-neon-lg);
+  --font: var(--font-sans);
+}
+
+/* ==================== 暗色赛博朋克主题 ==================== */
+
+html.dark {
+  /* ── 背景 ── */
+  --bg-deep: #0a0a12;
+  --bg-dark: #1a0b2e;
+  --bg-mid: #120520;
+  --bg-card: rgba(30, 20, 50, 0.6);
+  --bg-card-hover: rgba(40, 25, 65, 0.8);
+  --bg-sidebar: rgba(10, 10, 18, 0.88);
+  --bg-toolbar: rgba(18, 5, 32, 0.75);
+  --bg-input: rgba(20, 12, 40, 0.7);
+  --bg-overlay: rgba(8, 6, 20, 0.65);
+  --bg-glass: rgba(10, 10, 18, 0.78);
+
+  /* ── 文字 ── */
+  --text-primary: #e6e6fa;
+  --text-secondary: #a89fbf;
+  --text-muted: #6b6b8a;
+
+  /* ── 边框与阴影 ── */
+  --border-color: rgba(0, 240, 255, 0.12);
+  --border-glow: rgba(179, 0, 255, 0.25);
+  --shadow-neon-sm: 0 0 8px rgba(0, 240, 255, 0.15);
+  --shadow-neon-md: 0 0 18px rgba(179, 0, 255, 0.25);
+  --shadow-neon-lg: 0 0 32px rgba(0, 240, 255, 0.3);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 8px 36px rgba(179, 0, 255, 0.3), 0 0 20px rgba(0, 240, 255, 0.15);
+
+  /* ── 状态色（暗色版） ── */
+  --status-unplayed: #6b6b8a;
+  --status-playing: #00f0ff;
+  --status-completed: #00ffcc;
+  --status-shelved: #b300ff;
+
+  /* ── 霓虹装饰色（高饱和） ── */
+  --neon-blue: #00f0ff;
+  --neon-purple: #b300ff;
+  --neon-magenta: #ff00aa;
+  --neon-teal: #00ffcc;
+  --neon-orange: #ff6a00;
+  --neon-blue-dim: rgba(0, 240, 255, 0.35);
+  --neon-purple-dim: rgba(179, 0, 255, 0.3);
+  --neon-magenta-dim: rgba(255, 0, 170, 0.25);
+
+  /* ── 核心 accent ── */
+  --accent: #00f0ff;
+  --accent-hover: #33f5ff;
+  --accent-light: rgba(0, 240, 255, 0.18);
+
+  /* ── 兼容别名 ── */
+  --bg-primary: var(--bg-mid);
+  --bg-secondary: rgba(22, 14, 42, 0.9);
+  --shadow-sm: var(--shadow-neon-sm);
+  --shadow-md: var(--shadow-neon-md);
+  --shadow-lg: var(--shadow-neon-lg);
+}
