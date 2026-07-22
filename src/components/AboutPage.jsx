@@ -1,6 +1,7 @@
 import Icon from './Icon';
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import useAppVersion from '../hooks/useAppVersion';
 
 /**
  * AboutPage - 关于我们页面
@@ -8,6 +9,7 @@ import { invoke } from '@tauri-apps/api/core';
  */
 export default function AboutPage() {
   const [appIcon, setAppIcon] = useState('');
+  const appVersion = useAppVersion();
 
   useEffect(() => {
     invoke('get_app_icon').then(setAppIcon).catch(() => { });
@@ -102,7 +104,7 @@ export default function AboutPage() {
               </div>
               <div className="about-page-meta-item">
                 <span className="about-page-meta-label">当前版本</span>
-                <span className="about-page-meta-value">v1.3.0</span>
+                <span className="about-page-meta-value">v{appVersion || '...'}</span>
               </div>
               <div className="about-page-meta-item">
                 <span className="about-page-meta-label">作者</span>

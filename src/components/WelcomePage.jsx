@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useGame } from '../hooks/useGameData';
+import useAppVersion from '../hooks/useAppVersion';
 import Icon from './Icon';
 
 /**
@@ -9,6 +10,7 @@ import Icon from './Icon';
  */
 export default function WelcomePage() {
   const { dispatch, state } = useGame();
+  const appVersion = useAppVersion();
   const [stats, setStats] = useState(null);
   const [appIcon, setAppIcon] = useState('');
 
@@ -141,7 +143,7 @@ export default function WelcomePage() {
         </section>
 
         <footer className="welcome-footer">
-          <span>KurisuGal · v1.3.0</span>
+          <span>KurisuGal · v{appVersion || '...'}</span>
           <span className="welcome-footer-dot">·</span>
           <span>制作: CoolSomeBody</span>
         </footer>

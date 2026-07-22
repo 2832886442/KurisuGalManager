@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useGame } from '../hooks/useGameData';
+import useAppVersion from '../hooks/useAppVersion';
 import { showToast } from './Toast';
 import { formatError } from '../utils';
 import Modal from './Modal';
@@ -8,6 +9,7 @@ import Icon from './Icon';
 
 export default function SettingsModal({ onClose, onRefresh }) {
   const { state, dispatch } = useGame();
+  const appVersion = useAppVersion();
 
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'system');
   const [radius, setRadius] = useState(localStorage.getItem('window-radius') || '14');
@@ -41,7 +43,7 @@ export default function SettingsModal({ onClose, onRefresh }) {
   const handleSave = async () => {
     if (theme === 'system') localStorage.removeItem('theme');
     else localStorage.setItem('theme', theme);
-    
+
     document.documentElement.classList.remove('dark', 'light', 'fusion', 'glass', 'system');
     if (theme !== 'system') {
       document.documentElement.classList.add(theme);
@@ -133,10 +135,10 @@ export default function SettingsModal({ onClose, onRefresh }) {
   };
 
   const themeOptions = [
-    { value: 'dark',   label: '暗色', icon: 'moon' },
-    { value: 'light',  label: '亮色', icon: 'sun' },
+    { value: 'dark', label: '暗色', icon: 'moon' },
+    { value: 'light', label: '亮色', icon: 'sun' },
     { value: 'fusion', label: 'Fusion', icon: 'layers' },
-    { value: 'glass',  label: 'Glass', icon: 'wind' },
+    { value: 'glass', label: 'Glass', icon: 'wind' },
     { value: 'system', label: '跟随系统', icon: 'monitor' },
   ];
 
@@ -251,7 +253,7 @@ export default function SettingsModal({ onClose, onRefresh }) {
           <h4><Icon name="info" size={14} /> 关于</h4>
           <div className="about-info">
             <div className="about-row"><span className="about-label">软件名称</span><span className="about-value">KurisuGal Galgame 管理器</span></div>
-            <div className="about-row"><span className="about-label">版本</span><span className="about-value">v1.3.0</span></div>
+            <div className="about-row"><span className="about-label">版本</span><span className="about-value">v{appVersion || '...'}</span></div>
             <div className="about-row"><span className="about-label">制作人</span><span className="about-value">CoolSomeBody</span></div>
             <div className="about-row"><span className="about-label">GitHub</span><a className="about-link" href="https://github.com/2832886442/KurisuGalManager" target="_blank" rel="noopener noreferrer">github.com/2832886442/KurisuGalManager</a></div>
           </div>
