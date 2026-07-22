@@ -12,8 +12,11 @@ use std::io::Write;
 use std::sync::Mutex;
 
 const BGM_API_BASE: &str = "https://api.bgm.tv";
-const USER_AGENT: &str =
-    "KurisuGal/1.3.0 (https://github.com/2832886442/KurisuGalManager; galgame-manager)";
+const USER_AGENT: &str = concat!(
+    "KurisuGal/",
+    env!("CARGO_PKG_VERSION"),
+    " (https://github.com/2832886442/KurisuGalManager; galgame-manager)"
+);
 const REQUEST_TIMEOUT: u64 = 15;
 const CONNECT_TIMEOUT: u64 = 8;
 

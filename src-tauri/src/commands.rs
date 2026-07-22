@@ -1394,6 +1394,14 @@ pub fn get_app_icon() -> Result<String, String> {
     Ok(format!("data:image/x-icon;base64,{}", b64))
 }
 
+/// 返回应用版本号 (从 Cargo.toml 编译时读取)
+#[tauri::command]
+pub fn get_app_version() -> String {
+    let version = env!("CARGO_PKG_VERSION").to_string();
+    println!("版本号: {}", version);
+    version
+}
+
 #[tauri::command]
 pub async fn get_rankings() -> Result<Vec<crate::models::Ranking>, String> {
     tauri::async_runtime::spawn_blocking(|| {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getVersion } from '@tauri-apps/api/app';
+import { invoke } from '@tauri-apps/api/core';
 
 let cachedVersion = null;
 
@@ -7,7 +7,7 @@ export default function useAppVersion() {
   const [version, setVersion] = useState(cachedVersion ?? '');
   useEffect(() => {
     if (cachedVersion) return;
-    getVersion()
+    invoke('get_app_version')
       .then((v) => { cachedVersion = v; setVersion(v); })
       .catch(() => { cachedVersion = '未知'; setVersion('未知'); });
   }, []);

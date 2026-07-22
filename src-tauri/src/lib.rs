@@ -57,6 +57,7 @@ pub fn run() {
             commands::get_logo,
             commands::save_logo,
             commands::get_app_icon,
+            commands::get_app_version,
             commands::get_rankings,
             commands::create_ranking,
             commands::update_ranking,
@@ -81,7 +82,7 @@ pub fn run() {
                 log::warn!("旧数据迁移失败: {}", e);
             }
 
-            log::info!("KurisuGal v1.3.0 启动完成");
+            log::info!("KurisuGal v{} 启动完成", env!("CARGO_PKG_VERSION"));
             Ok(())
         })
         .run(tauri::generate_context!())
