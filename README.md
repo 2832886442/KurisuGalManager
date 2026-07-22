@@ -2,7 +2,7 @@
 
 基于 **Tauri 2 + React + Vue3 + Rust** 构建的桌面端 Galgame（视觉小说）管理工具。
 
-![QQ20260721-151847](.\Screenshoot\QQ20260721-151847.png)
+![v1.3.0](.\Screenshoot\QQ20260721-151847.png)
 
 ## 功能
 
