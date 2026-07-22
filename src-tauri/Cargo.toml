@@ -1,6 +1,6 @@
 [package]
 name = "kurisugal"
-version = "1.3.1"
+version = "1.3.2"
 description = "KurisuGal - A Galgame Manager Tauri App"
 authors = ["CoolSomeBody"]
 edition = "2021"

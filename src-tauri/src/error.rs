@@ -4,6 +4,7 @@ use thiserror::Error;
 /// 统一错误码
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[allow(dead_code)]
 pub enum ErrorCode {
     DataReadFailed,
     DataWriteFailed,

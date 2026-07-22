@@ -170,7 +170,80 @@
           </div>
         </div>
 
-        <!-- Game Pool -->
+        <!-- Bangumi 搜索添加 -->
+        <div class="ranking-game-pool ranking-bgm-pool">
+          <div class="ranking-game-pool-header">
+            <span class="ranking-game-pool-title">从 Bangumi 搜索添加</span>
+            <span class="bgm-add-card-trigger" @click="openBgmSearch" title="搜索添加游戏">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+          </div>
+          <div class="bgm-notice">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <path d="M12 9v4M12 17h.01" />
+            </svg>
+            <span>Bangumi 数据源需要科学上网才能访问</span>
+          </div>
+          <div v-if="showBgmSearch" class="bgm-add-section">
+            <div class="bgm-add-search-bar">
+              <input
+                v-model="bgmKeyword"
+                type="text"
+                class="form-input"
+                placeholder="在 Bangumi 搜索游戏..."
+                @keydown.enter="handleBgmSearch"
+                ref="bgmInputRef"
+              />
+              <button class="btn btn-primary btn-sm" @click="handleBgmSearch" :disabled="bgmLoading">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35" />
+                </svg>
+                搜索
+              </button>
+              <button class="btn btn-secondary btn-sm" @click="cancelBgmSearch">取消</button>
+            </div>
+            <div v-if="bgmLoading" class="bgm-add-loading">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+              </svg>
+              正在搜索...
+            </div>
+            <div v-if="bgmResults.length > 0" class="bgm-add-results">
+              <div
+                v-for="item in bgmResults"
+                :key="item.id"
+                class="bgm-add-result-item"
+                :class="{ 'bgm-add-selecting': bgmSelectingId === item.id }"
+              >
+                <img v-if="item.image" class="bgm-add-result-cover" :src="item.image" alt="" loading="lazy" />
+                <div class="bgm-add-result-info">
+                  <div class="bgm-add-result-title">{{ item.name_cn || item.name }}</div>
+                  <div v-if="item.name !== item.name_cn" class="bgm-add-result-subtitle">{{ item.name }}</div>
+                  <div class="bgm-add-result-meta">
+                    <span v-if="item.date">{{ item.date }}</span>
+                    <span v-if="item.score > 0" style="color:#fbbf24">★ {{ item.score.toFixed(1) }}</span>
+                    <span v-if="item.rank > 0">#{{ item.rank }}</span>
+                  </div>
+                </div>
+                <button
+                  class="btn btn-primary btn-sm"
+                  @click="handleBgmSelect(item)"
+                  :disabled="bgmSelectingId !== null"
+                >
+                  {{ bgmSelectingId === item.id ? '添加中...' : '添加' }}
+                </button>
+              </div>
+            </div>
+            <div v-if="bgmResults.length === 0 && !bgmLoading && bgmSearched" class="bgm-add-empty">
+              未找到相关游戏
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Pool - 本地游戏库 -->
         <div class="ranking-game-pool">
           <div class="ranking-game-pool-header">
             <span class="ranking-game-pool-title">游戏库 ({{ filteredGames.length }})</span>
@@ -181,9 +254,20 @@
               <input v-model="searchKeyword" type="text" placeholder="搜索游戏..." />
             </div>
           </div>
+          <div v-if="filteredGames.length === 0" class="ranking-game-pool-empty">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6 11h4M8 9v4M15 12h.01M18 11h.01M17.32 5H6.68A4.68 4.68 0 0 0 2 9.68v4.64A4.68 4.68 0 0 0 6.68 19h10.64A4.68 4.68 0 0 0 22 14.32V9.68A4.68 4.68 0 0 0 17.32 5z" />
+            </svg>
+            <span>游戏库中暂无未排名的游戏</span>
+          </div>
           <div class="ranking-game-pool-list">
             <div v-for="game in filteredGames" :key="game.id" class="ranking-pool-card"
               @mousedown="onPoolMouseDown($event, game)" @click="previewGame = game" :title="game.name">
+              <button v-if="game._isVirtual" class="ranking-pool-delete-btn" @click.stop="deleteRankVirtualGame(game)" title="删除虚拟游戏">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
               <div class="ranking-pool-cover">
                 <img v-if="game.cover && game.cover.startsWith('data:')" :src="game.cover" :alt="game.name" />
                 <div v-else class="no-cover">
@@ -344,6 +428,140 @@ const previewGame = ref(null);
 const rowMenuLevel = ref(null);
 const rankingMainRef = ref(null);
 const dragFloatRef = ref(null);
+const bgmInputRef = ref(null);
+
+/* ---------- Bangumi 搜索添加 ---------- */
+const showBgmSearch = ref(false);
+const bgmKeyword = ref('');
+const bgmResults = ref([]);
+const bgmLoading = ref(false);
+const bgmSearchKwRef = ref('');
+const bgmSelectingId = ref(null);
+const bgmSearched = ref(false);
+
+function openBgmSearch() {
+  showBgmSearch.value = true;
+  bgmResults.value = [];
+  bgmKeyword.value = '';
+  bgmSearched.value = false;
+  nextTick(() => { bgmInputRef.value?.focus(); });
+}
+
+function cancelBgmSearch() {
+  showBgmSearch.value = false;
+  bgmResults.value = [];
+  bgmKeyword.value = '';
+  bgmSearched.value = false;
+}
+
+async function handleBgmSearch() {
+  const kw = bgmKeyword.value.trim();
+  if (!kw) { toast('warning', '请输入游戏名称'); return; }
+  bgmLoading.value = true;
+  bgmResults.value = [];
+  bgmSearchKwRef.value = kw;
+  bgmSearched.value = true;
+  try {
+    const list = await invoke('search_bangumi', { keyword: kw });
+    bgmResults.value = list || [];
+    if ((list || []).length === 0) toast('info', '未找到相关游戏');
+  } catch (e) {
+    toast('error', 'Bangumi 搜索失败: ' + (e?.toString() || ''));
+    console.error('Bangumi search error:', e);
+  } finally {
+    bgmLoading.value = false;
+  }
+}
+
+async function handleBgmSelect(item) {
+  if (bgmSelectingId.value) return;
+  bgmSelectingId.value = item.id;
+
+  try {
+    // 获取详情和封面
+    let fillData = null;
+    try {
+      fillData = await Promise.race([
+        invoke('fetch_bangumi_game', { subjectId: item.id, keyword: bgmSearchKwRef.value || null }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('获取超时(15s)')), 15_000)),
+      ]);
+    } catch (fetchErr) {
+      console.warn('[RankingApp] fetch_bangumi_game failed, using search cache:', fetchErr);
+      // 回退：使用搜索结果数据
+      let coverBase64 = '';
+      const coverUrl = item.image_large || item.image;
+      if (coverUrl) {
+        try {
+          coverBase64 = await Promise.race([
+            invoke('download_bangumi_cover', { imageUrl: coverUrl }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('封面下载超时')), 10_000)),
+          ]);
+        } catch (coverErr) {
+          console.warn('[RankingApp] fallback cover download failed:', coverErr);
+        }
+      }
+      fillData = {
+        name: item.name || '',
+        name_cn: item.name_cn || '',
+        summary: item.summary || '',
+        cover: coverBase64,
+        tags: [],
+        date: item.date || '',
+      };
+    }
+
+    if (!fillData || (!fillData.name && !fillData.name_cn)) {
+      toast('warning', '获取的游戏数据为空');
+      return;
+    }
+
+    // 创建虚拟游戏对象（仅排名内生效，不进入全局游戏库）
+    const displayName = fillData.name_cn || fillData.name;
+    const alias = (fillData.name_cn && fillData.name && fillData.name_cn !== fillData.name) ? fillData.name : '';
+    const timestamp = Date.now();
+    const gameId = `bgm_${item.id}_${timestamp}`;
+
+    const gameObj = {
+      id: gameId,
+      name: displayName,
+      alias: alias,
+      path: '',
+      cover: fillData.cover || '',
+      category: '未分类',
+      tags: fillData.tags || [],
+      status: '未游玩',
+      description: fillData.summary || '',
+      play_time: 0,
+      last_play: null,
+      favorite: false,
+      screenshots: [],
+    };
+
+    const updatedRanking = await invoke('add_rank_virtual_game', {
+      rankingId: selected.value.id,
+      game: gameObj,
+    });
+
+    // 同步到本地状态
+    applyUpdate(updatedRanking);
+    // applyUpdate 内部会 nextTick(loadVirtualGameCovers)
+    // 但我们也在当前 tick 立即加载以确保封面在渲染前准备好
+    await loadVirtualGameCovers();
+
+    toast('success', `已添加「${displayName}」（排名虚拟游戏）`);
+    cancelBgmSearch();
+  } catch (e) {
+    const errMsg = e?.toString() || '';
+    if (errMsg.includes('已存在于库中')) {
+      toast('warning', '该游戏已在游戏库中');
+    } else {
+      toast('error', '添加失败: ' + errMsg);
+    }
+    console.error('Bangumi add error:', e);
+  } finally {
+    bgmSelectingId.value = null;
+  }
+}
 
 /* ---------- 初始化 ---------- */
 onMounted(async () => {
@@ -358,21 +576,53 @@ onMounted(async () => {
 /* ---------- 计算 ---------- */
 const filteredGames = computed(() => {
   const kw = searchKeyword.value.trim().toLowerCase();
-  // 排除已在当前排名等级中的游戏
   const rankedIds = selected.value?.levels.flatMap(l => l.game_ids) || [];
-  const available = allGames.value.filter(g => !rankedIds.includes(g.id));
-  if (!kw) return available;
-  return available.filter(g =>
+  // 汇总：真实导入游戏 + 排名内虚拟游戏
+  const real = allGames.value.filter(g => !rankedIds.includes(g.id));
+  const virt = (selected.value?.virtual_games || [])
+    .filter(g => !rankedIds.includes(g.id))
+    .map(g => ({ ...g, _isVirtual: true }));
+  const combined = [...real, ...virt];
+  if (!kw) return combined;
+  return combined.filter(g =>
     g.name.toLowerCase().includes(kw) || (g.alias && g.alias.toLowerCase().includes(kw))
   );
 });
 
+async function loadVirtualGameCovers() {
+  const ranking = selected.value;
+  if (!ranking?.virtual_games?.length) return;
+  const needLoad = [];
+  for (const g of ranking.virtual_games) {
+    if (g.cover && !g.cover.startsWith('data:')) needLoad.push(g);
+  }
+  if (needLoad.length === 0) return;
+  try {
+    const ids = needLoad.map(g => g.id);
+    const coversMap = await invoke('get_game_covers', { gameIds: ids });
+    // 通过 selected.value（Vue 响应式代理）写入，确保模板能感知变化
+    const s = selected.value;
+    if (!s) return;
+    for (const g of s.virtual_games) {
+      if (coversMap[g.id]) g.cover = coversMap[g.id];
+    }
+  } catch (e) { console.warn('loadVirtualGameCovers failed:', e); }
+}
+
 function getGames(level) {
-  return allGames.value.filter(g => level.game_ids.includes(g.id));
+  return level.game_ids.map(id => {
+    const real = allGames.value.find(g => g.id === id);
+    if (real) return real;
+    return (selected.value?.virtual_games || []).find(g => g.id === id);
+  }).filter(Boolean);
 }
 
 /* ---------- 排名操作 ---------- */
-function selectRanking(r) { selected.value = r; bridgeState.selectedRanking = r; }
+function selectRanking(r) {
+  selected.value = r;
+  bridgeState.selectedRanking = r;
+  nextTick(() => loadVirtualGameCovers());
+}
 async function createRanking() {
   const name = newRankingName.value.trim();
   if (!name) { toast('warning', '请输入排名名称'); return; }
@@ -469,6 +719,18 @@ async function removeGame(gameId) {
     toast('success', '已从排名中移除');
   } catch (e) { toast('error', e.toString()); }
 }
+async function deleteRankVirtualGame(game) {
+  if (!selected.value) return;
+  if (!confirm(`确定从排名中删除虚拟游戏「${game.name}」？`)) return;
+  try {
+    const updated = await invoke('remove_rank_virtual_game', {
+      rankingId: selected.value.id,
+      gameId: game.id,
+    });
+    applyUpdate(updated);
+    toast('success', `已删除虚拟游戏「${game.name}」`);
+  } catch (e) { toast('error', '删除失败: ' + (e?.toString() || '')); }
+}
 
 function applyUpdate(updated) {
   selected.value = updated;
@@ -478,6 +740,7 @@ function applyUpdate(updated) {
     rankings.value[idx] = updated;
     bridgeState.rankings = [...rankings.value];
   }
+  nextTick(() => loadVirtualGameCovers());
 }
 
 /* ---------- 滚轮横向滚动 ---------- */

@@ -40,6 +40,8 @@ pub fn run() {
             commands::search_bangumi,
             commands::fetch_bangumi_game,
             commands::download_bangumi_cover,
+            commands::add_rank_virtual_game,
+            commands::remove_rank_virtual_game,
             commands::get_data_root,
             commands::set_data_root,
             commands::get_data_size_info,

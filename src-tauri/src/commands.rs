@@ -105,7 +105,7 @@ pub async fn add_game(_app_handle: AppHandle, mut game: Game) -> Result<AppData,
             warn!("添加了可能重复的游戏: {} ({})", game.name, game.path);
         }
         data.games.push(game);
-        data_store::write_games(&data)?;
+        data_store::write_games_only(&data.games)?;
         update_cache(&data);
         crate::logger::log_op(
             "game",
@@ -144,7 +144,7 @@ pub async fn update_game(mut game: Game) -> Result<AppData, String> {
             crate::path_manager::delete_cover(&old_cover);
         }
         data.games[pos] = game;
-        data_store::write_games(&data)?;
+        data_store::write_games_only(&data.games)?;
         update_cache(&data);
         debug!("游戏已更新, id: {}", data.games[pos].id);
         Ok(data)
@@ -173,7 +173,7 @@ pub async fn delete_game(id: String) -> Result<AppData, String> {
         if data.games.len() == count_before {
             return Err(AppError::new(ErrorCode::GameNotFound, "游戏不存在"));
         }
-        data_store::write_games(&data)?;
+        data_store::write_games_only(&data.games)?;
         update_cache(&data);
         info!("游戏已删除, id: {}", id);
         Ok(data)
@@ -236,7 +236,7 @@ pub async fn launch_game(
                 if game.status == "未游玩" {
                     game.status = "游玩中".to_string();
                 }
-                data_store::write_games(&data)?;
+                data_store::write_games_only(&data.games)?;
                 update_cache(&data);
             }
             Ok(())
@@ -439,7 +439,7 @@ pub async fn cleanup_invalid() -> Result<AppData, String> {
         data.games.retain(|g| Path::new(&g.path).exists());
         let removed = before - data.games.len();
         if removed > 0 {
-            data_store::write_games(&data)?;
+            data_store::write_games_only(&data.games)?;
             update_cache(&data);
             info!(
                 "清理无效数据完成, 移除了 {} 条, 剩余 {}",
@@ -525,7 +525,7 @@ pub async fn batch_update_category(
                 count += 1;
             }
         }
-        data_store::write_games(&data)?;
+        data_store::write_games_only(&data.games)?;
         update_cache(&data);
         info!("批量移动 {} 个游戏到分类: {}", count, category);
         Ok(data)
@@ -553,7 +553,7 @@ pub async fn quick_update_status(game_id: String, status: String) -> Result<AppD
         if !game_found {
             return Err(AppError::new(ErrorCode::GameNotFound, "游戏不存在"));
         }
-        data_store::write_games(&data)?;
+        data_store::write_games_only(&data.games)?;
         update_cache(&data);
         Ok(data)
     })
@@ -802,6 +802,81 @@ pub async fn download_bangumi_cover(image_url: String) -> Result<String, String>
         .map(|bytes| crate::bangumi::bytes_to_data_uri(&bytes))
 }
 
+/// 向排名中添加 Bangumi 虚拟游戏（不进入全局游戏库，仅排名内有效）
+#[tauri::command]
+pub async fn add_rank_virtual_game(
+    ranking_id: String,
+    mut game: Game,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        game.cover = process_cover(&game.id, &game.cover)?;
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+        // 去重
+        if ranking
+            .virtual_games
+            .iter()
+            .any(|g| g.id == game.id || g.name == game.name)
+        {
+            return Err(AppError::new(ErrorCode::InvalidInput, "该游戏已在此排名中"));
+        }
+        ranking.virtual_games.push(game);
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_rankings_only(&data.rankings)?;
+        update_cache(&data);
+        info!("向排名 {} 添加虚拟游戏成功", ranking_id);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 从排名中删除虚拟游戏（同时从所有等级中移除）
+#[tauri::command]
+pub async fn remove_rank_virtual_game(
+    ranking_id: String,
+    game_id: String,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+        ranking.virtual_games.retain(|g| g.id != game_id);
+        // 从所有等级中移除该游戏
+        for level in &mut ranking.levels {
+            level.game_ids.retain(|id| id != &game_id);
+        }
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_rankings_only(&data.rankings)?;
+        update_cache(&data);
+        info!("从排名 {} 删除虚拟游戏 {}", ranking_id, game_id);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
 // ======================== 截图管理 ========================
 
 /// 添加截图：将图片文件复制到游戏截图目录，并生成缩略图
@@ -859,7 +934,7 @@ pub async fn add_screenshot(game_id: String, source_path: String) -> Result<Vec<
         let mut data = get_cached_games()?;
         if let Some(game) = data.games.iter_mut().find(|g| g.id == game_id) {
             game.screenshots.push(filename.clone());
-            data_store::write_games(&data)?;
+            data_store::write_games_only(&data.games)?;
             update_cache(&data);
         }
 
@@ -1209,7 +1284,7 @@ pub async fn delete_screenshot(game_id: String, filename: String) -> Result<Vec<
         let mut data = get_cached_games()?;
         if let Some(game) = data.games.iter_mut().find(|g| g.id == game_id) {
             game.screenshots.retain(|s| s != &filename);
-            data_store::write_games(&data)?;
+            data_store::write_games_only(&data.games)?;
             update_cache(&data);
         }
         Ok(vec![])
@@ -1236,7 +1311,7 @@ pub async fn toggle_favorite(game_id: String) -> Result<bool, String> {
             .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "游戏不存在"))?;
         game.favorite = !game.favorite;
         let new_state = game.favorite;
-        data_store::write_games(&data)?;
+        data_store::write_games_only(&data.games)?;
         update_cache(&data);
         info!("收藏状态已切换: {} -> {}", game_id, new_state);
         Ok(new_state)
@@ -1397,9 +1472,7 @@ pub fn get_app_icon() -> Result<String, String> {
 /// 返回应用版本号 (从 Cargo.toml 编译时读取)
 #[tauri::command]
 pub fn get_app_version() -> String {
-    let version = env!("CARGO_PKG_VERSION").to_string();
-    println!("版本号: {}", version);
-    version
+    env!("CARGO_PKG_VERSION").to_string()
 }
 
 #[tauri::command]
@@ -1461,10 +1534,11 @@ pub async fn create_ranking(name: String) -> Result<crate::models::Ranking, Stri
             levels,
             created_at: now.clone(),
             updated_at: now,
+            virtual_games: vec![],
         };
         let mut data = get_cached_games()?;
         data.rankings.push(ranking.clone());
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(ranking)
     })
@@ -1492,7 +1566,7 @@ pub async fn update_ranking(
         let mut updated = ranking.clone();
         updated.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         data.rankings[idx] = updated.clone();
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(updated)
     })
@@ -1515,7 +1589,7 @@ pub async fn delete_ranking(id: String) -> Result<AppData, String> {
         if data.rankings.len() == count_before {
             return Err(AppError::new(ErrorCode::GameNotFound, "排名不存在"));
         }
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(data)
     })
@@ -1553,7 +1627,7 @@ pub async fn set_game_rank(
 
         ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let result = ranking.clone();
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(result)
     })
@@ -1586,7 +1660,7 @@ pub async fn remove_game_from_rank(
 
         ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let result = ranking.clone();
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(result)
     })
@@ -1643,7 +1717,7 @@ pub async fn add_rank_level(
         ranking.levels.insert(insert_idx, new_level);
         ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let result = ranking.clone();
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(result)
     })
@@ -1677,7 +1751,7 @@ pub async fn delete_rank_level(
         }
         ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let result = ranking.clone();
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(result)
     })
@@ -1710,7 +1784,7 @@ pub async fn clear_rank_level(
         }
         ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let result = ranking.clone();
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(result)
     })
@@ -1746,7 +1820,7 @@ pub async fn update_rank_level(
         }
         ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let result = ranking.clone();
-        data_store::write_games(&data)?;
+        data_store::write_rankings_only(&data.rankings)?;
         update_cache(&data);
         Ok(result)
     })

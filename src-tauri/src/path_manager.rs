@@ -345,6 +345,16 @@ pub fn games_file() -> PathBuf {
     data_root().join("game_list.json")
 }
 
+/// 新格式：仅游戏数据的文件路径
+pub fn games_only_file() -> PathBuf {
+    data_root().join("games.json")
+}
+
+/// 新格式：仅排名数据的文件路径
+pub fn rankings_file() -> PathBuf {
+    data_root().join("rankings.json")
+}
+
 pub fn cover_dir() -> PathBuf {
     data_root().join("CoverArt")
 }

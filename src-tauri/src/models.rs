@@ -47,6 +47,9 @@ pub struct Ranking {
     pub levels: Vec<RankLevel>,
     pub created_at: String,
     pub updated_at: String,
+    /// 排名内临时添加的虚拟游戏（不进入全局游戏库，无启动/截图等功能，仅用于排名）
+    #[serde(default)]
+    pub virtual_games: Vec<Game>,
 }
 
 /// Bangumi 查询返回的填充数据（前端用于覆盖表单字段）
