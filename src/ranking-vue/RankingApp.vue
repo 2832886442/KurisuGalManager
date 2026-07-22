@@ -304,13 +304,22 @@ function hexToRgba(hex, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 function contrastColor(hex, alpha) {
-  hex = (hex || '#9ca3af').replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16) || 0;
-  const g = parseInt(hex.substring(2, 4), 16) || 0;
-  const b = parseInt(hex.substring(4, 6), 16) || 0;
+  let r, g, b;
+  const raw = (hex || '#9ca3af').trim();
+  if (raw.startsWith('#')) {
+    const h = raw.replace('#', '');
+    r = parseInt(h.substring(0, 2), 16) || 0;
+    g = parseInt(h.substring(2, 4), 16) || 0;
+    b = parseInt(h.substring(4, 6), 16) || 0;
+  } else {
+    // rgb(r, g, b) 格式
+    const m = raw.match(/[\d.]+/g);
+    r = m ? parseInt(m[0]) || 0 : 0;
+    g = m ? parseInt(m[1]) || 0 : 0;
+    b = m ? parseInt(m[2]) || 0 : 0;
+  }
   const isLight = (r * 299 + g * 587 + b * 114) / 1000 >= 140;
   if (alpha !== undefined) {
-    // Return rgba with the contrast color (dark for light bg, light for dark bg)
     return isLight ? `rgba(0,0,0,${alpha})` : `rgba(255,255,255,${alpha})`;
   }
   return isLight ? '#000' : '#fff';

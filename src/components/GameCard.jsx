@@ -8,7 +8,7 @@ const STATUS_CLASS = {
   '未游玩': 'status-unplayed',
   '游玩中': 'status-playing',
   '已通关': 'status-completed',
-  '搁置':   'status-shelved',
+  '搁置': 'status-shelved',
 };
 
 function useTagTruncation(tags) {
@@ -205,11 +205,12 @@ export default function GameCard({ game }) {
           {game.tags.slice(0, visibleCount).map(t => <span key={t} className="card-tag">{escapeHtml(t)}</span>)}
           {game.tags.length > visibleCount && <span className="card-tag">+{game.tags.length - visibleCount}</span>}
         </div>
+        {game.description && <p className="card-intro">{escapeHtml(game.description)}</p>}
         <span className="card-category">{escapeHtml(game.category)}</span>
-        <div className="card-meta">
-          <span>{game.last_play ? escapeHtml(game.last_play) : '从未'}</span>
-          <span>{game.play_time > 0 ? game.play_time + 'min' : '0min'}</span>
-        </div>
+      </div>
+      <div className="card-meta">
+        <span className="card-meta-last">{game.last_play ? escapeHtml(game.last_play) : '从未'}</span>
+        <span className="card-meta-time">{game.play_time > 0 ? game.play_time + 'min' : '0min'}</span>
       </div>
     </div>
   );

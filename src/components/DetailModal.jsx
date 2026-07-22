@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { useGame } from '../hooks/useGameData';
 import { escapeHtml, formatError } from '../utils';
 import { showToast } from './Toast';
@@ -13,18 +13,39 @@ export default function DetailModal({ gameId, onClose, onEdit, onDelete, onRefre
   const [previewScreenshot, setPreviewScreenshot] = useState(null);
   const isRunning = state.runningIds.includes(gameId);
 
+  const openPreview = async (filename) => {
+    setPreviewScreenshot({ filename, loading: true });
+    try {
+      const path = await invoke('get_screenshot_path', { gameId, filename });
+      if (import.meta.env.DEV) {
+        const isThumb = path.includes('_thumb');
+        console.log(
+          `[截图诊断-前端] openPreview 原图 | filename=${filename} | path=${path} | 是缩略图=${isThumb}`,
+        );
+      }
+      setPreviewScreenshot({ filename, url: convertFileSrc(path), loading: false });
+    } catch { setPreviewScreenshot(null); }
+  };
+
   const loadScreenshots = useCallback(async () => {
     try {
-      const list = await invoke('list_screenshots', { gameId });
-      const withData = await Promise.all(
-        list.map(async (filename) => {
-          try {
-            const dataUri = await invoke('get_screenshot_base64', { gameId, filename });
-            return { filename, dataUri };
-          } catch { return null; }
-        })
-      );
-      setScreenshots(withData.filter(Boolean));
+      const items = await invoke('list_screenshots_with_thumbs', { gameId });
+      const mapped = items.map(item => ({
+        filename: item.filename,
+        thumbUrl: item.thumb_data_uri,
+      }));
+      if (import.meta.env.DEV) {
+        console.log(
+          `[截图诊断-前端] loadScreenshots(Base64) | gameId=${gameId} | 共 ${mapped.length} 张截图`,
+        );
+        mapped.forEach((s, i) => {
+          const isDataUri = s.thumbUrl.startsWith('data:image/');
+          console.log(
+            `[截图诊断-前端] [${i + 1}/${mapped.length}] filename=${s.filename} | dataUri预览=${s.thumbUrl.substring(0, 50)}... | 是DataUri=${isDataUri}`,
+          );
+        });
+      }
+      setScreenshots(mapped);
     } catch (e) { console.warn('截图加载失败:', e); }
   }, [gameId]);
 
@@ -172,10 +193,10 @@ export default function DetailModal({ gameId, onClose, onEdit, onDelete, onRefre
                     <div
                       key={s.filename}
                       className="screenshot-thumb"
-                      onClick={() => setPreviewScreenshot(s)}
+                      onClick={() => openPreview(s.filename)}
                       title="点击查看大图"
                     >
-                      <img src={s.dataUri} alt="截图" loading="lazy" />
+                      <img src={s.thumbUrl} alt="截图" loading="lazy" decoding="async" />
                       <button className="screenshot-del-btn" onClick={(e) => { e.stopPropagation(); handleDeleteScreenshot(s.filename); }} title="删除">
                         <Icon name="x" size={12} color="#fff" />
                       </button>
@@ -198,9 +219,10 @@ export default function DetailModal({ gameId, onClose, onEdit, onDelete, onRefre
             </button>
             <img
               className="screenshot-preview-img"
-              src={previewScreenshot.dataUri}
+              src={previewScreenshot.url || ''}
               alt="截图预览"
             />
+            {previewScreenshot.loading && <span className="screenshot-preview-loading">加载原图...</span>}
             <span className="screenshot-preview-name">{previewScreenshot.filename}</span>
           </div>
         </div>

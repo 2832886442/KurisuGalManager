@@ -804,11 +804,11 @@ pub async fn download_bangumi_cover(image_url: String) -> Result<String, String>
 
 // ======================== 截图管理 ========================
 
-/// 添加截图：将图片文件复制到游戏截图目录
+/// 添加截图：将图片文件复制到游戏截图目录，并生成缩略图
 #[tauri::command]
 pub async fn add_screenshot(game_id: String, source_path: String) -> Result<Vec<String>, String> {
     tauri::async_runtime::spawn_blocking(move || -> Result<Vec<String>, AppError> {
-        use crate::path_manager::{game_screenshots_dir, screenshot_path};
+        use crate::path_manager::{game_screenshots_dir, screenshot_path, screenshot_thumb_path};
 
         let source = Path::new(&source_path);
         if !source.exists() {
@@ -828,6 +828,33 @@ pub async fn add_screenshot(game_id: String, source_path: String) -> Result<Vec<
         fs::copy(source, &dest)
             .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "复制截图文件失败", e))?;
 
+        // 生成缩略图（最大宽度 300px，JPEG）——必须在返回前完成
+        let thumb_dest = screenshot_thumb_path(&game_id, &filename);
+        match generate_thumbnail(&dest, &thumb_dest) {
+            Ok(()) => {
+                let thumb_size = std::fs::metadata(&thumb_dest)
+                    .map(|m| m.len())
+                    .unwrap_or(0);
+                let orig_size = std::fs::metadata(&dest)
+                    .map(|m| m.len())
+                    .unwrap_or(0);
+                log::info!("缩略图已生成: {}", thumb_dest.display());
+                #[cfg(debug_assertions)]
+                eprintln!(
+                    "[截图诊断] 添加截图完成 | 原图: {} ({} bytes) | 缩略图: {} ({} bytes) | 缩略图含_thumb: {}",
+                    filename, orig_size,
+                    thumb_dest.file_name().unwrap_or_default().to_string_lossy(),
+                    thumb_size,
+                    thumb_dest.to_string_lossy().contains("_thumb")
+                );
+            }
+            Err(e) => {
+                log::warn!("生成缩略图失败 ({}): {}", filename, e);
+                #[cfg(debug_assertions)]
+                eprintln!("[截图诊断] 缩略图生成失败! 原图: {} | 错误: {}", filename, e);
+            }
+        }
+
         // 更新游戏数据中的截图列表
         let mut data = get_cached_games()?;
         if let Some(game) = data.games.iter_mut().find(|g| g.id == game_id) {
@@ -837,6 +864,14 @@ pub async fn add_screenshot(game_id: String, source_path: String) -> Result<Vec<
         }
 
         info!("截图已添加: {} -> {}", source_path, dest.display());
+        #[cfg(debug_assertions)]
+        eprintln!(
+            "[截图诊断] 返回前端 | game_id={} | 原图文件名={} | 缩略图路径={} | _thumb验证={}",
+            game_id,
+            filename,
+            thumb_dest.to_string_lossy(),
+            thumb_dest.to_string_lossy().contains("_thumb")
+        );
         Ok(vec![filename])
     })
     .await
@@ -847,6 +882,40 @@ pub async fn add_screenshot(game_id: String, source_path: String) -> Result<Vec<
         ))
     })
     .map_err(to_frontend_error)
+}
+
+/// 生成缩略图（最大宽度 300px，JPEG 格式，质量 60）
+fn generate_thumbnail(source: &Path, dest: &Path) -> Result<(), AppError> {
+    use std::io::Cursor;
+    let img = image::open(source)
+        .map_err(|e| AppError::wrap(ErrorCode::DataReadFailed, "读取原图失败", e))?;
+    let orig_w = img.width();
+    let orig_h = img.height();
+    let thumb = if img.width() > 300 {
+        let h = (300.0 / img.width() as f64 * img.height() as f64) as u32;
+        img.resize_exact(300, h, image::imageops::FilterType::Lanczos3)
+    } else {
+        img
+    };
+    let mut buf = Cursor::new(Vec::new());
+    // 使用 JPEG 编码器并设置较低质量以获得更小的文件
+    let encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 60);
+    thumb
+        .write_with_encoder(encoder)
+        .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "编码缩略图失败", e))?;
+    let data = buf.into_inner();
+    let thumb_size = data.len();
+    fs::write(dest, &data)
+        .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "保存缩略图失败", e))?;
+    #[cfg(debug_assertions)]
+    eprintln!(
+        "[截图诊断] 缩略图生成 | 原图尺寸: {}x{} | 缩略图尺寸: {}x{} | 缩略图大小: {} bytes | 目标: {}",
+        orig_w, orig_h,
+        thumb.width(), thumb.height(),
+        thumb_size,
+        dest.file_name().unwrap_or_default().to_string_lossy()
+    );
+    Ok(())
 }
 
 /// 获取游戏的截图列表（返回文件名数组）
@@ -871,7 +940,221 @@ pub async fn list_screenshots(game_id: String) -> Result<Vec<String>, String> {
     .map_err(to_frontend_error)
 }
 
-/// 获取单张截图的 Base64 data URI
+/// 获取截图列表及其缩略图路径（一次调用，避免前端多次请求）
+/// 确保返回的 thumb_path 100% 是缩略图（文件名含 _thumb 后缀且文件真实存在）
+#[tauri::command]
+pub async fn list_screenshots_with_paths(
+    game_id: String,
+) -> Result<Vec<serde_json::Value>, String> {
+    let gid = game_id.clone();
+    tauri::async_runtime::spawn_blocking(move || -> Result<Vec<serde_json::Value>, AppError> {
+        let data = get_cached_games()?;
+        let game = data
+            .games
+            .iter()
+            .find(|g| g.id == gid)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "游戏不存在"))?;
+
+        #[cfg(debug_assertions)]
+        eprintln!("[截图诊断] === list_screenshots_with_paths 开始 | game_id={} | 截图总数={} ===", gid, game.screenshots.len());
+
+        let mut result = Vec::new();
+        for (idx, filename) in game.screenshots.iter().enumerate() {
+            let thumb_path = crate::path_manager::screenshot_thumb_path(&gid, filename);
+            let thumb_str = thumb_path.to_string_lossy().to_string();
+            let thumb_name = thumb_path.file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+
+            // 【安全检查1】验证缩略图文件名是否以 _thumb 结尾（不含扩展名时）或包含 _thumb
+            let has_thumb_marker = thumb_name.contains("_thumb");
+            if !has_thumb_marker {
+                log::error!("[截图] 缩略图路径缺少 _thumb 后缀: {}", thumb_str);
+                #[cfg(debug_assertions)]
+                eprintln!("[截图诊断] [{}/{}] 跳过! 缩略图名不含_thumb: {}", idx + 1, game.screenshots.len(), thumb_name);
+                continue;
+            }
+
+            // 缩略图不存在时自动生成
+            if !thumb_path.exists() {
+                let src = crate::path_manager::screenshot_path(&gid, filename);
+                if src.exists() {
+                    log::info!("[截图] 旧数据自动生成缩略图: {} -> {}", src.display(), thumb_str);
+                    #[cfg(debug_assertions)]
+                    eprintln!("[截图诊断] [{}/{}] 补生成缩略图: {} -> {}", idx + 1, game.screenshots.len(), filename, thumb_name);
+                    if let Err(e) = generate_thumbnail(&src, &thumb_path) {
+                        log::warn!("[截图] 自动生成缩略图失败 ({}): {}", filename, e);
+                        #[cfg(debug_assertions)]
+                        eprintln!("[截图诊断] [{}/{}] 补生成失败: {} | {}", idx + 1, game.screenshots.len(), filename, e);
+                    }
+                }
+            }
+
+            // 【安全检查2】最终验证：确保缩略图文件确实存在
+            if !thumb_path.exists() {
+                log::error!("[截图] 缩略图不存在，跳过: {}", thumb_str);
+                #[cfg(debug_assertions)]
+                eprintln!("[截图诊断] [{}/{}] 跳过! 缩略图文件不存在: {}", idx + 1, game.screenshots.len(), thumb_str);
+                continue;
+            }
+
+            // 输出诊断日志
+            let size = std::fs::metadata(&thumb_path).map(|m| m.len()).unwrap_or(0);
+            log::info!("[截图] 返回缩略图: {} ({} bytes)", thumb_str, size);
+            #[cfg(debug_assertions)]
+            eprintln!(
+                "[截图诊断] [{}/{}] 返回前端 => filename={} | thumb_path={} | size={}bytes | _thumb验证=OK",
+                idx + 1, game.screenshots.len(),
+                filename, thumb_str, size
+            );
+
+            result.push(serde_json::json!({
+                "filename": filename,
+                "thumb_path": thumb_str,
+            }));
+        }
+        log::info!("[截图] 共返回 {} 个缩略图路径", result.len());
+        #[cfg(debug_assertions)]
+        eprintln!("[截图诊断] === list_screenshots_with_paths 结束 | 返回 {} 条 | 跳过 {} 条 ===", result.len(), game.screenshots.len() - result.len());
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 获取截图列表及其缩略图 Base64 data URI（一次调用，前端无需 convertFileSrc，性能最优）
+/// 返回 [{filename, thumb_data_uri}]，thumb_data_uri 格式为 "data:image/jpeg;base64,..."
+#[tauri::command]
+pub async fn list_screenshots_with_thumbs(
+    game_id: String,
+) -> Result<Vec<serde_json::Value>, String> {
+    let gid = game_id.clone();
+    tauri::async_runtime::spawn_blocking(move || -> Result<Vec<serde_json::Value>, AppError> {
+        let data = get_cached_games()?;
+        let game = data
+            .games
+            .iter()
+            .find(|g| g.id == gid)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "游戏不存在"))?;
+
+        #[cfg(debug_assertions)]
+        eprintln!("[截图诊断] === list_screenshots_with_thumbs 开始 | game_id={} | 截图总数={} ===", gid, game.screenshots.len());
+
+        let mut result = Vec::new();
+        for (idx, filename) in game.screenshots.iter().enumerate() {
+            let thumb_path = crate::path_manager::screenshot_thumb_path(&gid, filename);
+
+            // 缩略图不存在时自动生成
+            if !thumb_path.exists() {
+                let src = crate::path_manager::screenshot_path(&gid, filename);
+                if src.exists() {
+                    #[cfg(debug_assertions)]
+                    eprintln!("[截图诊断] [{}/{}] 补生成缩略图: {}", idx + 1, game.screenshots.len(), filename);
+                    if let Err(e) = generate_thumbnail(&src, &thumb_path) {
+                        log::warn!("[截图] 自动生成缩略图失败 ({}): {}", filename, e);
+                        #[cfg(debug_assertions)]
+                        eprintln!("[截图诊断] [{}/{}] 补生成失败，跳过: {}", idx + 1, game.screenshots.len(), filename);
+                        continue;
+                    }
+                } else {
+                    #[cfg(debug_assertions)]
+                    eprintln!("[截图诊断] [{}/{}] 原图不存在，跳过: {}", idx + 1, game.screenshots.len(), filename);
+                    continue;
+                }
+            }
+
+            // 再次确认缩略图存在
+            if !thumb_path.exists() {
+                #[cfg(debug_assertions)]
+                eprintln!("[截图诊断] [{}/{}] 缩略图仍不存在，跳过: {}", idx + 1, game.screenshots.len(), filename);
+                continue;
+            }
+
+            // 读取缩略图并编码为 Base64 data URI
+            let thumb_bytes = match fs::read(&thumb_path) {
+                Ok(b) => b,
+                Err(e) => {
+                    log::warn!("[截图] 读取缩略图失败 ({}): {}", filename, e);
+                    continue;
+                }
+            };
+            let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &thumb_bytes);
+            let data_uri = format!("data:image/jpeg;base64,{}", b64);
+
+            #[cfg(debug_assertions)]
+            {
+                let thumb_name = thumb_path.file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_default();
+                eprintln!(
+                    "[截图诊断] [{}/{}] 返回前端 Base64 | filename={} | thumb={} | raw={}bytes | b64={}chars",
+                    idx + 1, game.screenshots.len(),
+                    filename, thumb_name,
+                    thumb_bytes.len(), b64.len()
+                );
+            }
+
+            result.push(serde_json::json!({
+                "filename": filename,
+                "thumb_data_uri": data_uri,
+            }));
+        }
+        #[cfg(debug_assertions)]
+        eprintln!("[截图诊断] === list_screenshots_with_thumbs 结束 | 返回 {} 条 ===", result.len());
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 获取截图文件路径（前端用 convertFileSrc 加载）
+#[tauri::command]
+pub fn get_screenshot_path(game_id: String, filename: String) -> Result<String, String> {
+    let path = crate::path_manager::screenshot_path(&game_id, &filename);
+    Ok(path.to_string_lossy().to_string())
+}
+
+/// 获取截图缩略图路径（前端用 convertFileSrc 加载），缩略图不存在时自动生成
+#[tauri::command]
+pub async fn get_screenshot_thumb_path(
+    game_id: String,
+    filename: String,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<String, AppError> {
+        let thumb = crate::path_manager::screenshot_thumb_path(&game_id, &filename);
+        if !thumb.exists() {
+            let src = crate::path_manager::screenshot_path(&game_id, &filename);
+            if src.exists() {
+                generate_thumbnail(&src, &thumb).unwrap_or_else(|e| {
+                    log::warn!("自动生成缩略图失败 ({}): {}", filename, e);
+                });
+            }
+        }
+        Ok(thumb.to_string_lossy().to_string())
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 获取截图的 Base64 data URI（仅用于预览大图时加载原图）
 #[tauri::command]
 pub async fn get_screenshot_base64(game_id: String, filename: String) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || -> Result<String, AppError> {
@@ -908,12 +1191,19 @@ pub async fn get_screenshot_base64(game_id: String, filename: String) -> Result<
 pub async fn delete_screenshot(game_id: String, filename: String) -> Result<Vec<String>, String> {
     tauri::async_runtime::spawn_blocking(move || -> Result<Vec<String>, AppError> {
         let path = crate::path_manager::screenshot_path(&game_id, &filename);
+        let thumb_path = crate::path_manager::screenshot_thumb_path(&game_id, &filename);
         if path.exists() {
             if let Err(e) = fs::remove_file(&path) {
                 log::warn!("删除截图文件失败 ({}): {}", filename, e);
             }
         } else {
             log::info!("截图文件不存在，跳过文件删除: {}", filename);
+        }
+        // 同时删除缩略图
+        if thumb_path.exists() {
+            if let Err(e) = fs::remove_file(&thumb_path) {
+                log::warn!("删除缩略图文件失败: {}", e);
+            }
         }
         // 无论文件删除成功与否，都从游戏数据中移除引用
         let mut data = get_cached_games()?;

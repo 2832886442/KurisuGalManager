@@ -390,6 +390,14 @@ pub fn screenshot_path(game_id: &str, filename: &str) -> PathBuf {
     game_screenshots_dir(game_id).join(filename)
 }
 
+pub fn screenshot_thumb_path(game_id: &str, filename: &str) -> PathBuf {
+    let stem = std::path::Path::new(filename)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(filename);
+    game_screenshots_dir(game_id).join(format!("{}_thumb.jpg", stem))
+}
+
 // ==================== 路径配置持久化 ====================
 
 /// 加载路径配置
