@@ -45,6 +45,17 @@ pub fn scan_exe_files(folder: &str) -> Result<Vec<String>, AppError> {
     Ok(exes)
 }
 
+/// 生成唯一 ID（时间戳 + 随机数）
+pub fn generate_id() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis();
+    let random: u32 = (timestamp as u32).wrapping_mul(48271) % 2147483647;
+    format!("{:x}{:x}", timestamp, random)
+}
+
 /// 验证路径安全性：必须是绝对路径，不能包含路径遍历
 pub fn validate_path(path_str: &str) -> Result<PathBuf, AppError> {
     let path = Path::new(path_str);

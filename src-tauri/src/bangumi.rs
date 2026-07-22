@@ -12,7 +12,8 @@ use std::io::Write;
 use std::sync::Mutex;
 
 const BGM_API_BASE: &str = "https://api.bgm.tv";
-const USER_AGENT: &str = "KurisuGal/1.2.5 (https://github.com/2832886442/KurisuGalManager; galgame-manager)";
+const USER_AGENT: &str =
+    "KurisuGal/1.3.0 (https://github.com/2832886442/KurisuGalManager; galgame-manager)";
 const REQUEST_TIMEOUT: u64 = 15;
 const CONNECT_TIMEOUT: u64 = 8;
 
@@ -189,10 +190,11 @@ async fn fetch_json(url: &str) -> Result<Value, String> {
             "status": status.as_u16(), "elapsed_ms": elapsed_ms, "body": text
         }));
     } else {
+        let preview: String = text.chars().take(200).collect();
         trace_write(serde_json::json!({
             "time": trace_now(), "type": "GET_RESPONSE", "url": url,
             "status": status.as_u16(), "elapsed_ms": elapsed_ms,
-            "body_len": text.len(), "body_preview": &text[..200]
+            "body_len": text.len(), "body_preview": preview
         }));
     }
 
@@ -202,17 +204,18 @@ async fn fetch_json(url: &str) -> Result<Value, String> {
         return Err(format!("API 返回错误 ({}): {}", status.as_u16(), preview));
     }
 
-    debug!("Bangumi 响应 (前500字符): {}", &text[..text.len().min(500)]);
+    debug!(
+        "Bangumi 响应 (前500字符): {}",
+        text.chars().take(500).collect::<String>()
+    );
 
     serde_json::from_str::<Value>(&text).map_err(|e| {
-        let err = format!(
-            "JSON 解析失败: {} (响应前200字符: {})",
-            e,
-            &text[..text.len().min(200)]
-        );
+        let preview200: String = text.chars().take(200).collect();
+        let err = format!("JSON 解析失败: {} (响应前200字符: {})", e, preview200);
+        let preview500: String = text.chars().take(500).collect();
         trace_write(serde_json::json!({
             "time": trace_now(), "type": "GET_PARSE_ERROR", "url": url,
-            "error": err, "body_preview": &text[..text.len().min(500)]
+            "error": err, "body_preview": preview500
         }));
         err
     })

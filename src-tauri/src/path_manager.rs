@@ -361,6 +361,35 @@ pub fn cache_dir() -> PathBuf {
     data_root().join("Cache")
 }
 
+pub fn screenshots_dir() -> PathBuf {
+    data_root().join("Screenshots")
+}
+
+pub fn assets_dir() -> PathBuf {
+    data_root().join("Assets")
+}
+
+pub fn logo_file() -> PathBuf {
+    let assets = assets_dir();
+    // 尝试各种格式
+    for ext in &["png", "jpg", "jpeg", "gif", "webp"] {
+        let p = assets.join(format!("logo.{}", ext));
+        if p.exists() {
+            return p;
+        }
+    }
+    // 默认返回 png 路径（即使不存在，调用方自行判断）
+    assets.join("logo.png")
+}
+
+pub fn game_screenshots_dir(game_id: &str) -> PathBuf {
+    screenshots_dir().join(game_id)
+}
+
+pub fn screenshot_path(game_id: &str, filename: &str) -> PathBuf {
+    game_screenshots_dir(game_id).join(filename)
+}
+
 // ==================== 路径配置持久化 ====================
 
 /// 加载路径配置
@@ -422,7 +451,13 @@ pub fn ensure_all_dirs() {
 }
 
 fn ensure_data_dirs() {
-    let dirs = [data_root(), cover_dir(), saves_dir(), cache_dir()];
+    let dirs = [
+        data_root(),
+        cover_dir(),
+        saves_dir(),
+        cache_dir(),
+        screenshots_dir(),
+    ];
     for d in &dirs {
         let _ = fs::create_dir_all(d);
     }
@@ -628,7 +663,7 @@ pub fn save_cover_file(game_id: &str, data_uri: &str) -> Result<String, AppError
 }
 
 /// 解析 data URI，返回 (mime, binary_data)
-fn parse_data_uri(uri: &str) -> Result<(&str, Vec<u8>), AppError> {
+pub fn parse_data_uri(uri: &str) -> Result<(&str, Vec<u8>), AppError> {
     if !uri.starts_with("data:") {
         return Err(AppError::new(
             ErrorCode::InvalidInput,

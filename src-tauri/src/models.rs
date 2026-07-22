@@ -22,6 +22,31 @@ pub struct Game {
     /// ISO 日期字符串
     pub last_play: Option<String>,
     pub favorite: bool,
+    /// 截图文件名列表
+    #[serde(default)]
+    pub screenshots: Vec<String>,
+}
+
+fn default_color() -> String { "#9ca3af".to_string() }
+
+/// 排名等级
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RankLevel {
+    pub level: i32,
+    pub name: String,
+    pub game_ids: Vec<String>,
+    #[serde(default = "default_color")]
+    pub color: String,
+}
+
+/// 排名
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Ranking {
+    pub id: String,
+    pub name: String,
+    pub levels: Vec<RankLevel>,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 /// Bangumi 查询返回的填充数据（前端用于覆盖表单字段）
@@ -39,6 +64,8 @@ pub struct BangumiFillData {
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct AppData {
     pub games: Vec<Game>,
+    #[serde(default)]
+    pub rankings: Vec<Ranking>,
 }
 
 /// 应用设置

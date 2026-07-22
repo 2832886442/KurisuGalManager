@@ -44,6 +44,25 @@ pub fn run() {
             commands::set_data_root,
             commands::get_data_size_info,
             commands::pick_folder,
+            commands::add_screenshot,
+            commands::list_screenshots,
+            commands::get_screenshot_base64,
+            commands::delete_screenshot,
+            commands::toggle_favorite,
+            commands::get_home_stats,
+            commands::get_logo,
+            commands::save_logo,
+            commands::get_app_icon,
+            commands::get_rankings,
+            commands::create_ranking,
+            commands::update_ranking,
+            commands::delete_ranking,
+            commands::set_game_rank,
+            commands::remove_game_from_rank,
+            commands::add_rank_level,
+            commands::delete_rank_level,
+            commands::clear_rank_level,
+            commands::update_rank_level,
         ])
         .setup(|app| {
             // 初始化路径管理器
@@ -58,7 +77,7 @@ pub fn run() {
                 log::warn!("旧数据迁移失败: {}", e);
             }
 
-            log::info!("KurisuGal v1.2.5 启动完成");
+            log::info!("KurisuGal v1.3.0 启动完成");
             Ok(())
         })
         .run(tauri::generate_context!())

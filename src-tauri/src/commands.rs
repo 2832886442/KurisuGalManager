@@ -801,3 +801,663 @@ pub async fn download_bangumi_cover(image_url: String) -> Result<String, String>
         .await
         .map(|bytes| crate::bangumi::bytes_to_data_uri(&bytes))
 }
+
+// ======================== 截图管理 ========================
+
+/// 添加截图：将图片文件复制到游戏截图目录
+#[tauri::command]
+pub async fn add_screenshot(game_id: String, source_path: String) -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<Vec<String>, AppError> {
+        use crate::path_manager::{game_screenshots_dir, screenshot_path};
+
+        let source = Path::new(&source_path);
+        if !source.exists() {
+            return Err(AppError::new(ErrorCode::PathInvalid, "源图片文件不存在"));
+        }
+
+        let dir = game_screenshots_dir(&game_id);
+        fs::create_dir_all(&dir)
+            .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "创建截图目录失败", e))?;
+
+        // 生成唯一文件名
+        let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("png");
+        let timestamp = Local::now().format("%Y%m%d%H%M%S%3f").to_string();
+        let filename = format!("{}_{}.{}", game_id, timestamp, ext);
+
+        let dest = screenshot_path(&game_id, &filename);
+        fs::copy(source, &dest)
+            .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "复制截图文件失败", e))?;
+
+        // 更新游戏数据中的截图列表
+        let mut data = get_cached_games()?;
+        if let Some(game) = data.games.iter_mut().find(|g| g.id == game_id) {
+            game.screenshots.push(filename.clone());
+            data_store::write_games(&data)?;
+            update_cache(&data);
+        }
+
+        info!("截图已添加: {} -> {}", source_path, dest.display());
+        Ok(vec![filename])
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 获取游戏的截图列表（返回文件名数组）
+#[tauri::command]
+pub async fn list_screenshots(game_id: String) -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<Vec<String>, AppError> {
+        let data = get_cached_games()?;
+        let game = data
+            .games
+            .iter()
+            .find(|g| g.id == game_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "游戏不存在"))?;
+        Ok(game.screenshots.clone())
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 获取单张截图的 Base64 data URI
+#[tauri::command]
+pub async fn get_screenshot_base64(game_id: String, filename: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<String, AppError> {
+        let path = crate::path_manager::screenshot_path(&game_id, &filename);
+        let bytes = fs::read(&path)
+            .map_err(|e| AppError::wrap(ErrorCode::DataReadFailed, "读取截图文件失败", e))?;
+        let ext = std::path::Path::new(&filename)
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("png")
+            .to_lowercase();
+        let mime = match ext.as_str() {
+            "jpg" | "jpeg" => "image/jpeg",
+            "png" => "image/png",
+            "gif" => "image/gif",
+            "webp" => "image/webp",
+            _ => "image/png",
+        };
+        let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &bytes);
+        Ok(format!("data:{};base64,{}", mime, b64))
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 删除指定截图
+#[tauri::command]
+pub async fn delete_screenshot(game_id: String, filename: String) -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<Vec<String>, AppError> {
+        let path = crate::path_manager::screenshot_path(&game_id, &filename);
+        if path.exists() {
+            if let Err(e) = fs::remove_file(&path) {
+                log::warn!("删除截图文件失败 ({}): {}", filename, e);
+            }
+        } else {
+            log::info!("截图文件不存在，跳过文件删除: {}", filename);
+        }
+        // 无论文件删除成功与否，都从游戏数据中移除引用
+        let mut data = get_cached_games()?;
+        if let Some(game) = data.games.iter_mut().find(|g| g.id == game_id) {
+            game.screenshots.retain(|s| s != &filename);
+            data_store::write_games(&data)?;
+            update_cache(&data);
+        }
+        Ok(vec![])
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 切换收藏状态
+#[tauri::command]
+pub async fn toggle_favorite(game_id: String) -> Result<bool, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<bool, AppError> {
+        let mut data = get_cached_games()?;
+        let game = data
+            .games
+            .iter_mut()
+            .find(|g| g.id == game_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "游戏不存在"))?;
+        game.favorite = !game.favorite;
+        let new_state = game.favorite;
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        info!("收藏状态已切换: {} -> {}", game_id, new_state);
+        Ok(new_state)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 获取首页统计数据
+#[tauri::command]
+pub async fn get_home_stats() -> Result<serde_json::Value, String> {
+    tauri::async_runtime::spawn_blocking(|| -> Result<serde_json::Value, AppError> {
+        let data = get_cached_games()?;
+        let games = &data.games;
+
+        let total_games = games.len();
+        let total_favorites = games.iter().filter(|g| g.favorite).count();
+        let total_play_time: u64 = games.iter().map(|g| g.play_time).sum();
+
+        let mut categories: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::new();
+        for g in games {
+            *categories.entry(g.category.clone()).or_default() += 1;
+        }
+        let mut cat_dist: Vec<serde_json::Value> = categories
+            .into_iter()
+            .map(|(cat, count)| serde_json::json!({ "name": cat, "count": count }))
+            .collect();
+        cat_dist.sort_by(|a, b| b["count"].as_u64().cmp(&a["count"].as_u64()));
+
+        let mut sorted: Vec<&Game> = games.iter().collect();
+        sorted.sort_by(|a, b| b.play_time.cmp(&a.play_time));
+        let top5: Vec<serde_json::Value> = sorted
+            .iter()
+            .take(5)
+            .filter(|g| g.play_time > 0)
+            .map(|g| {
+                serde_json::json!({
+                    "name": g.name,
+                    "play_time": g.play_time,
+                    "category": g.category,
+                })
+            })
+            .collect();
+
+        Ok(serde_json::json!({
+            "total_games": total_games,
+            "total_favorites": total_favorites,
+            "total_play_time": total_play_time,
+            "category_distribution": cat_dist,
+            "top5_playtime": top5,
+        }))
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 获取自定义 Logo（返回 base64 data URI，无 logo 返回空字符串）
+#[tauri::command]
+pub async fn get_logo() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(|| -> Result<String, AppError> {
+        let logo_path = crate::path_manager::logo_file();
+        if !logo_path.exists() {
+            return Ok(String::new());
+        }
+        let data = std::fs::read(&logo_path)
+            .map_err(|e| AppError::wrap(ErrorCode::DataReadFailed, "读取 Logo 失败", e))?;
+        let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &data);
+        let mime = match logo_path.extension().and_then(|e| e.to_str()) {
+            Some("png") => "image/png",
+            Some("jpg") | Some("jpeg") => "image/jpeg",
+            Some("gif") => "image/gif",
+            Some("webp") => "image/webp",
+            _ => "image/png",
+        };
+        Ok(format!("data:{};base64,{}", mime, b64))
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 保存自定义 Logo（接收 base64 data URI）
+#[tauri::command]
+pub async fn save_logo(data_uri: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<(), AppError> {
+        let assets_dir = crate::path_manager::assets_dir();
+        std::fs::create_dir_all(&assets_dir)
+            .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "创建资源目录失败", e))?;
+
+        if data_uri.is_empty() {
+            return Ok(());
+        }
+
+        // 移除旧 logo
+        if let Ok(entries) = std::fs::read_dir(&assets_dir) {
+            for entry in entries.flatten() {
+                let name = entry.file_name();
+                let name_str = name.to_string_lossy();
+                if name_str.starts_with("logo.") {
+                    let _ = std::fs::remove_file(entry.path());
+                }
+            }
+        }
+
+        let (mime, data) = crate::path_manager::parse_data_uri(&data_uri)?;
+        let ext = match mime {
+            "image/png" => "png",
+            "image/gif" => "gif",
+            "image/webp" => "webp",
+            _ => "jpg",
+        };
+        let filename = format!("logo.{}", ext);
+        let filepath = assets_dir.join(&filename);
+        std::fs::write(&filepath, &data)
+            .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "保存 Logo 失败", e))?;
+
+        info!("Logo 已保存: {}", filepath.display());
+        Ok(())
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+// ======================== 排名管理 ========================
+
+/// 返回程序图标 (base64 data URI)
+#[tauri::command]
+pub fn get_app_icon() -> Result<String, String> {
+    let icon_data = include_bytes!("../icons/128x128.ico");
+    let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, icon_data);
+    Ok(format!("data:image/x-icon;base64,{}", b64))
+}
+
+#[tauri::command]
+pub async fn get_rankings() -> Result<Vec<crate::models::Ranking>, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let data = get_cached_games()?;
+        Ok(data.rankings)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+#[tauri::command]
+pub async fn create_ranking(name: String) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let id = utils::generate_id();
+        let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let levels = vec![
+            crate::models::RankLevel {
+                level: 1,
+                name: "夯".to_string(),
+                game_ids: vec![],
+                color: "rgb(255, 127, 127)".to_string(),
+            },
+            crate::models::RankLevel {
+                level: 2,
+                name: "顶级".to_string(),
+                game_ids: vec![],
+                color: "rgb(255, 191, 127)".to_string(),
+            },
+            crate::models::RankLevel {
+                level: 3,
+                name: "人上人".to_string(),
+                game_ids: vec![],
+                color: "rgb(255, 223, 127)".to_string(),
+            },
+            crate::models::RankLevel {
+                level: 4,
+                name: "NPC".to_string(),
+                game_ids: vec![],
+                color: "rgb(255, 255, 127)".to_string(),
+            },
+            crate::models::RankLevel {
+                level: 5,
+                name: "拉完了".to_string(),
+                game_ids: vec![],
+                color: "rgb(191, 255, 127)".to_string(),
+            },
+        ];
+        let ranking = crate::models::Ranking {
+            id,
+            name,
+            levels,
+            created_at: now.clone(),
+            updated_at: now,
+        };
+        let mut data = get_cached_games()?;
+        data.rankings.push(ranking.clone());
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(ranking)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+#[tauri::command]
+pub async fn update_ranking(
+    ranking: crate::models::Ranking,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let idx = data
+            .rankings
+            .iter()
+            .position(|r| r.id == ranking.id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+        let mut updated = ranking.clone();
+        updated.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        data.rankings[idx] = updated.clone();
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(updated)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+#[tauri::command]
+pub async fn delete_ranking(id: String) -> Result<AppData, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<AppData, AppError> {
+        let mut data = get_cached_games()?;
+        let count_before = data.rankings.len();
+        data.rankings.retain(|r| r.id != id);
+        if data.rankings.len() == count_before {
+            return Err(AppError::new(ErrorCode::GameNotFound, "排名不存在"));
+        }
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(data)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+#[tauri::command]
+pub async fn set_game_rank(
+    ranking_id: String,
+    game_id: String,
+    level: i32,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+
+        for lvl in ranking.levels.iter_mut() {
+            lvl.game_ids.retain(|g| g != &game_id);
+        }
+
+        if let Some(target_lvl) = ranking.levels.iter_mut().find(|l| l.level == level) {
+            target_lvl.game_ids.push(game_id);
+        }
+
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+#[tauri::command]
+pub async fn remove_game_from_rank(
+    ranking_id: String,
+    game_id: String,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+
+        for lvl in ranking.levels.iter_mut() {
+            lvl.game_ids.retain(|g| g != &game_id);
+        }
+
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 在指定等级后添加新等级(insert_after_level 为 0 表示在最前插入)
+#[tauri::command]
+pub async fn add_rank_level(
+    ranking_id: String,
+    name: String,
+    color: String,
+    insert_after_level: i32,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+
+        let insert_idx = if insert_after_level <= 0 {
+            0
+        } else {
+            ranking
+                .levels
+                .iter()
+                .position(|l| l.level == insert_after_level)
+                .map(|i| i + 1)
+                .unwrap_or(ranking.levels.len())
+        };
+
+        // 后续等级 level+1
+        for lvl in ranking.levels.iter_mut() {
+            if lvl.level > insert_after_level {
+                lvl.level += 1;
+            }
+        }
+
+        let new_level = crate::models::RankLevel {
+            level: insert_after_level + 1,
+            name,
+            game_ids: vec![],
+            color,
+        };
+        ranking.levels.insert(insert_idx, new_level);
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 删除指定等级,后续等级 level-1,游戏回到游戏库
+#[tauri::command]
+pub async fn delete_rank_level(
+    ranking_id: String,
+    level: i32,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+
+        ranking.levels.retain(|l| l.level != level);
+        for (i, lvl) in ranking.levels.iter_mut().enumerate() {
+            lvl.level = (i + 1) as i32;
+        }
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 清空指定等级中的游戏(游戏回到游戏库)
+#[tauri::command]
+pub async fn clear_rank_level(
+    ranking_id: String,
+    level: i32,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+
+        if let Some(lvl) = ranking.levels.iter_mut().find(|l| l.level == level) {
+            lvl.game_ids.clear();
+        }
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+/// 修改等级名称和颜色
+#[tauri::command]
+pub async fn update_rank_level(
+    ranking_id: String,
+    level: i32,
+    name: String,
+    color: String,
+) -> Result<crate::models::Ranking, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<crate::models::Ranking, AppError> {
+        let mut data = get_cached_games()?;
+        let ranking = data
+            .rankings
+            .iter_mut()
+            .find(|r| r.id == ranking_id)
+            .ok_or_else(|| AppError::new(ErrorCode::GameNotFound, "排名不存在"))?;
+
+        if let Some(lvl) = ranking.levels.iter_mut().find(|l| l.level == level) {
+            lvl.name = name;
+            lvl.color = color;
+        }
+        ranking.updated_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let result = ranking.clone();
+        data_store::write_games(&data)?;
+        update_cache(&data);
+        Ok(result)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}

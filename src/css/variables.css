@@ -1,129 +1,343 @@
 /* ============================================================
-   variables.css - CSS 自定义属性
-   :root     = 亮色主题（WCAG AA 级对比度）
-   html.dark = 暗色赛博朋克主题
+   variables.css - Qt 风格设计令牌
+   暗色/亮色/Fusion/Glass/System
    ============================================================ */
 
-/* ==================== 亮色主题（默认） ==================== */
-
+/* ==================== 暗色主题(默认) - Qt Fusion Dark ==================== */
 :root {
-  /* ── 背景 ── */
-  --bg-deep: #edf0f5;
-  --bg-dark: #dde1e8;
-  --bg-mid: #f7f8fc;
-  --bg-card: rgba(255, 255, 255, 0.78);
-  --bg-card-hover: rgba(255, 255, 255, 0.96);
-  --bg-sidebar: rgba(237, 240, 245, 0.85);
-  --bg-toolbar: rgba(255, 255, 255, 0.65);
-  --bg-input: rgba(242, 244, 248, 0.88);
-  --bg-overlay: rgba(0, 0, 0, 0.25);
-  --bg-glass: rgba(255, 255, 255, 0.78);
+  /* ── 背景层级(由深到浅)── */
+  --bg-app:        #1a1a24;
+  --bg-sidebar:    #1e1e28;
+  --bg-panel:      #242430;
+  --bg-content:    #1a1a24;
+  --bg-card:       #2a2a38;
+  --bg-card-hover: #323242;
+  --bg-elevated:   #363646;
+  --bg-input:      #20202a;
 
-  /* ── 文字 — WCAG AA: #1a1c1e 对比度 ~16:1 / #3b3f46 ~7.5:1 / #6b7078 ~4.5:1 ── */
-  --text-primary: #1a1c1e;
-  --text-secondary: #3b3f46;
-  --text-muted: #6b7078;
-
-  /* ── 边框与阴影 ── */
-  --border-color: rgba(0, 0, 0, 0.1);
-  --border-glow: rgba(120, 60, 200, 0.18);
-  --shadow-neon-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-neon-md: 0 4px 18px rgba(0, 0, 0, 0.1);
-  --shadow-neon-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
-  --shadow-card-hover: 0 6px 28px rgba(0, 0, 0, 0.15);
-
-  /* ── 圆角 ── */
-  --radius: 8px;
-  --radius-card: 10px;
-
-  /* ── 过渡 ── */
-  --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-
-  /* ── 状态色（亮色版） ── */
-  --status-playing: #0078d4;
-  --status-completed: #0d9488;
-  --status-shelved: #8b3fcf;
-
-  /* ── 霓虹装饰色（亮色模式下仍保留一定饱和度作为点缀） ── */
-  --neon-blue: #0080d0;
-  --neon-purple: #8b3fcf;
-  --neon-magenta: #d6336c;
-  --neon-teal: #0d9488;
-  --neon-orange: #ea580c;
-  --neon-blue-dim: rgba(0, 128, 208, 0.2);
-  --neon-purple-dim: rgba(139, 63, 207, 0.2);
-  --neon-magenta-dim: rgba(214, 51, 108, 0.15);
-
-  /* ── 核心 accent（用于按钮、导航激活态等关键 UI） ── */
-  --accent: #0078d4;
-  --accent-hover: #005a9e;
-  --accent-light: rgba(0, 120, 212, 0.12);
-
-  /* ── 兼容别名 ── */
-  --bg-primary: var(--bg-mid);
-  --bg-secondary: rgba(248, 249, 252, 0.92);
-  --shadow-sm: var(--shadow-neon-sm);
-  --shadow-md: var(--shadow-neon-md);
-  --shadow-lg: var(--shadow-neon-lg);
-  --font: var(--font-sans);
-}
-
-/* ==================== 暗色赛博朋克主题 ==================== */
-
-html.dark {
-  /* ── 背景 ── */
-  --bg-deep: #0a0a12;
-  --bg-dark: #1a0b2e;
-  --bg-mid: #120520;
-  --bg-card: rgba(30, 20, 50, 0.6);
-  --bg-card-hover: rgba(40, 25, 65, 0.8);
-  --bg-sidebar: rgba(10, 10, 18, 0.88);
-  --bg-toolbar: rgba(18, 5, 32, 0.75);
-  --bg-input: rgba(20, 12, 40, 0.7);
-  --bg-overlay: rgba(8, 6, 20, 0.65);
-  --bg-glass: rgba(10, 10, 18, 0.78);
+  /* ── 兼容旧名 ── */
+  --bg-deep:    var(--bg-app);
+  --bg-dark:    var(--bg-sidebar);
+  --bg-mid:     var(--bg-content);
+  --bg-secondary: var(--bg-card);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  --bg-glass:   var(--bg-elevated);
+  --bg-toolbar: var(--bg-elevated);
 
   /* ── 文字 ── */
-  --text-primary: #e6e6fa;
-  --text-secondary: #a89fbf;
-  --text-muted: #6b6b8a;
+  --text-primary:    #f0f0f4;
+  --text-secondary:  #c4c4cc;
+  --text-muted:      #8a8a96;
+  --text-disabled:   #5a5a66;
 
-  /* ── 边框与阴影 ── */
-  --border-color: rgba(0, 240, 255, 0.12);
-  --border-glow: rgba(179, 0, 255, 0.25);
-  --shadow-neon-sm: 0 0 8px rgba(0, 240, 255, 0.15);
-  --shadow-neon-md: 0 0 18px rgba(179, 0, 255, 0.25);
-  --shadow-neon-lg: 0 0 32px rgba(0, 240, 255, 0.3);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
-  --shadow-card-hover: 0 8px 36px rgba(179, 0, 255, 0.3), 0 0 20px rgba(0, 240, 255, 0.15);
+  /* ── 边框 ── */
+  --border-subtle:   rgba(255, 255, 255, 0.06);
+  --border-default:  rgba(255, 255, 255, 0.10);
+  --border-strong:   rgba(255, 255, 255, 0.18);
+  --border-color:    var(--border-default);
+  --border-glow:     transparent;
 
-  /* ── 状态色（暗色版） ── */
-  --status-unplayed: #6b6b8a;
-  --status-playing: #00f0ff;
-  --status-completed: #00ffcc;
-  --status-shelved: #b300ff;
+  /* ── 强调色(Qt Blue)── */
+  --accent:          #4da6ff;
+  --accent-hover:    #66b3ff;
+  --accent-active:   #3399ff;
+  --accent-light:    rgba(77, 166, 255, 0.12);
+  --accent-bg:       rgba(77, 166, 255, 0.12);
+  --accent-bg-hover: rgba(77, 166, 255, 0.20);
 
-  /* ── 霓虹装饰色（高饱和） ── */
-  --neon-blue: #00f0ff;
-  --neon-purple: #b300ff;
-  --neon-magenta: #ff00aa;
-  --neon-teal: #00ffcc;
-  --neon-orange: #ff6a00;
-  --neon-blue-dim: rgba(0, 240, 255, 0.35);
-  --neon-purple-dim: rgba(179, 0, 255, 0.3);
-  --neon-magenta-dim: rgba(255, 0, 170, 0.25);
+  /* ── 状态色 ── */
+  --status-unplayed: #8a8a96;
+  --status-playing:  #4da6ff;
+  --status-completed:#4ade80;
+  --status-shelved:  #f59e0b;
+  --status-running:  #22d3ee;
 
-  /* ── 核心 accent ── */
-  --accent: #00f0ff;
-  --accent-hover: #33f5ff;
-  --accent-light: rgba(0, 240, 255, 0.18);
+  /* ── 功能色 ── */
+  --danger:          #ff6b6b;
+  --danger-hover:    #ee5a5a;
+  --success:         #56d364;
+  --warning:         #f59e0b;
+  --color-success:   var(--success);
+  --color-warning:   var(--warning);
+  --color-danger:    var(--danger);
+  --color-danger-hover: var(--danger-hover);
 
-  /* ── 兼容别名 ── */
-  --bg-primary: var(--bg-mid);
-  --bg-secondary: rgba(22, 14, 42, 0.9);
-  --shadow-sm: var(--shadow-neon-sm);
-  --shadow-md: var(--shadow-neon-md);
-  --shadow-lg: var(--shadow-neon-lg);
+  /* ── 阴影(Qt 风格)── */
+  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md:       0 3px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg:       0 8px 20px rgba(0, 0, 0, 0.5);
+  --shadow-modal:    0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-card:     var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-neon-sm:  var(--shadow-sm);
+  --shadow-neon-md:  var(--shadow-md);
+  --shadow-neon-lg:  var(--shadow-lg);
+
+  /* ── 圆角(Qt 风格)── */
+  --radius-sm:    4px;
+  --radius-md:    6px;
+  --radius:       var(--radius-md);
+  --radius-lg:    8px;
+  --radius-card:  var(--radius-md);
+  --radius-xl:    12px;
+  --radius-full:  9999px;
+
+  /* ── 过渡 ── */
+  --transition-fast: 120ms ease-out;
+  --transition:      200ms ease-out;
+  --transition-slow: 280ms ease-out;
+
+  /* ── 字号 ── */
+  --fs-xs:    11px;
+  --fs-sm:    12px;
+  --fs-base:  13px;
+  --fs-md:    14px;
+  --fs-lg:    16px;
+  --fs-xl:    20px;
+  --fs-2xl:   24px;
+  --fs-3xl:   32px;
+
+  /* ── 间距 ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+
+  /* ── 布局尺寸 ── */
+  --w-sidebar:  56px;
+  --w-panel:    240px;
+  --h-toolbar:  44px;
+  --sidebar-width: var(--w-sidebar);
+  --panel-width:   var(--w-panel);
+  --toolbar-height: var(--h-toolbar);
+  --statusbar-height: 0px;
+
+  /* ── 卡片 ── */
+  --card-w:     200px;
+  --card-h:     280px;
+  --cover-ratio: 3 / 4;
+}
+
+/* ==================== 亮色主题 - Qt Light ==================== */
+html.light,
+:root.light {
+  --bg-app:        #f5f5f7;
+  --bg-sidebar:    #ffffff;
+  --bg-panel:      #fafafa;
+  --bg-content:    #f0f0f3;
+  --bg-card:       #ffffff;
+  --bg-card-hover: #f5f5f7;
+  --bg-elevated:   #ffffff;
+  --bg-input:      #f5f5f7;
+
+  --bg-deep:    var(--bg-app);
+  --bg-dark:    var(--bg-sidebar);
+  --bg-mid:     var(--bg-content);
+  --bg-secondary: var(--bg-card);
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+  --bg-glass:   var(--bg-elevated);
+  --bg-toolbar: var(--bg-elevated);
+
+  --text-primary:    #1a1a1f;
+  --text-secondary:  #4a4a55;
+  --text-muted:      #8a8a96;
+  --text-disabled:   #b8b8c0;
+
+  --border-subtle:   rgba(0, 0, 0, 0.06);
+  --border-default:  rgba(0, 0, 0, 0.10);
+  --border-strong:   rgba(0, 0, 0, 0.18);
+  --border-color:    var(--border-default);
+
+  --accent:          #0078d4;
+  --accent-hover:    #106ebe;
+  --accent-active:   #005a9e;
+  --accent-light:    rgba(0, 120, 212, 0.08);
+  --accent-bg:       rgba(0, 120, 212, 0.08);
+  --accent-bg-hover: rgba(0, 120, 212, 0.14);
+
+  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md:       0 3px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg:       0 8px 20px rgba(0, 0, 0, 0.12);
+  --shadow-modal:    0 12px 32px rgba(0, 0, 0, 0.18);
+  --shadow-card:     var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-neon-sm:  var(--shadow-sm);
+  --shadow-neon-md:  var(--shadow-md);
+  --shadow-neon-lg:  var(--shadow-lg);
+}
+
+/* ==================== Fusion 主题 - Qt Fusion ==================== */
+html.fusion,
+:root.fusion {
+  --bg-app:        #242424;
+  --bg-sidebar:    #2d2d2d;
+  --bg-panel:      #313131;
+  --bg-content:    #242424;
+  --bg-card:       #363636;
+  --bg-card-hover: #3d3d3d;
+  --bg-elevated:   #424242;
+  --bg-input:      #2a2a2a;
+
+  --bg-deep:    var(--bg-app);
+  --bg-dark:    var(--bg-sidebar);
+  --bg-mid:     var(--bg-content);
+  --bg-secondary: var(--bg-card);
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --bg-glass:   var(--bg-elevated);
+  --bg-toolbar: var(--bg-elevated);
+
+  --text-primary:    #ffffff;
+  --text-secondary:  #d4d4d4;
+  --text-muted:      #969696;
+  --text-disabled:   #646464;
+
+  --border-subtle:   rgba(255, 255, 255, 0.08);
+  --border-default:  rgba(255, 255, 255, 0.15);
+  --border-strong:   rgba(255, 255, 255, 0.25);
+  --border-color:    var(--border-default);
+  --border-glow:     transparent;
+
+  --accent:          #3772c7;
+  --accent-hover:    #4a85d6;
+  --accent-active:   #2d5ea3;
+  --accent-light:    rgba(55, 114, 199, 0.15);
+  --accent-bg:       rgba(55, 114, 199, 0.15);
+  --accent-bg-hover: rgba(55, 114, 199, 0.25);
+
+  --danger:          #c44343;
+  --danger-hover:    #d65252;
+  --success:         #3c863c;
+  --warning:         #c89400;
+
+  --shadow-sm:       0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md:       0 4px 10px rgba(0, 0, 0, 0.5);
+  --shadow-lg:       0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-modal:    0 12px 36px rgba(0, 0, 0, 0.7);
+  --shadow-card:     var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-neon-sm:  var(--shadow-sm);
+  --shadow-neon-md:  var(--shadow-md);
+  --shadow-neon-lg:  var(--shadow-lg);
+}
+
+/* ==================== Glass 主题 - 毛玻璃效果 ==================== */
+html.glass,
+:root.glass {
+  --bg-app:        rgba(26, 26, 36, 0.85);
+  --bg-sidebar:    rgba(30, 30, 40, 0.9);
+  --bg-panel:      rgba(36, 36, 48, 0.85);
+  --bg-content:    rgba(26, 26, 36, 0.85);
+  --bg-card:       rgba(42, 42, 56, 0.7);
+  --bg-card-hover: rgba(50, 50, 66, 0.8);
+  --bg-elevated:   rgba(54, 54, 70, 0.9);
+  --bg-input:      rgba(32, 32, 42, 0.7);
+
+  --bg-deep:    var(--bg-app);
+  --bg-dark:    var(--bg-sidebar);
+  --bg-mid:     var(--bg-content);
+  --bg-secondary: var(--bg-card);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  --bg-glass:   rgba(255, 255, 255, 0.05);
+  --bg-toolbar: rgba(54, 54, 70, 0.9);
+
+  --text-primary:    #f0f0f4;
+  --text-secondary:  #c4c4cc;
+  --text-muted:      #8a8a96;
+  --text-disabled:   #5a5a66;
+
+  --border-subtle:   rgba(255, 255, 255, 0.08);
+  --border-default:  rgba(255, 255, 255, 0.12);
+  --border-strong:   rgba(255, 255, 255, 0.20);
+  --border-color:    var(--border-default);
+  --border-glow:     rgba(77, 166, 255, 0.3);
+
+  --accent:          #66b3ff;
+  --accent-hover:    #80c1ff;
+  --accent-active:   #4da6ff;
+  --accent-light:    rgba(102, 179, 255, 0.15);
+  --accent-bg:       rgba(102, 179, 255, 0.10);
+  --accent-bg-hover: rgba(102, 179, 255, 0.20);
+
+  --danger:          #ff8080;
+  --danger-hover:    #ff6b6b;
+  --success:         #80ff80;
+  --warning:         #ffcc66;
+
+  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md:       0 3px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg:       0 8px 20px rgba(0, 0, 0, 0.4);
+  --shadow-modal:    0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-card:     var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-neon-sm:  var(--shadow-sm);
+  --shadow-neon-md:  var(--shadow-md);
+  --shadow-neon-lg:  var(--shadow-lg);
+}
+
+/* ==================== System 主题 - 跟随系统 ==================== */
+@media (prefers-color-scheme: dark) {
+  html.system,
+  :root.system {
+    --bg-app:        #1a1a24;
+    --bg-sidebar:    #1e1e28;
+    --bg-panel:      #242430;
+    --bg-content:    #1a1a24;
+    --bg-card:       #2a2a38;
+    --bg-card-hover: #323242;
+    --bg-elevated:   #363646;
+    --bg-input:      #20202a;
+
+    --text-primary:    #f0f0f4;
+    --text-secondary:  #c4c4cc;
+    --text-muted:      #8a8a96;
+    --text-disabled:   #5a5a66;
+
+    --border-subtle:   rgba(255, 255, 255, 0.06);
+    --border-default:  rgba(255, 255, 255, 0.10);
+    --border-strong:   rgba(255, 255, 255, 0.18);
+
+    --accent:          #4da6ff;
+    --accent-hover:    #66b3ff;
+    --accent-active:   #3399ff;
+    --accent-bg:       rgba(77, 166, 255, 0.12);
+
+    --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md:       0 3px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg:       0 8px 20px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  html.system,
+  :root.system {
+    --bg-app:        #f5f5f7;
+    --bg-sidebar:    #ffffff;
+    --bg-panel:      #fafafa;
+    --bg-content:    #f0f0f3;
+    --bg-card:       #ffffff;
+    --bg-card-hover: #f5f5f7;
+    --bg-elevated:   #ffffff;
+    --bg-input:      #f5f5f7;
+
+    --text-primary:    #1a1a1f;
+    --text-secondary:  #4a4a55;
+    --text-muted:      #8a8a96;
+    --text-disabled:   #b8b8c0;
+
+    --border-subtle:   rgba(0, 0, 0, 0.06);
+    --border-default:  rgba(0, 0, 0, 0.10);
+    --border-strong:   rgba(0, 0, 0, 0.18);
+
+    --accent:          #0078d4;
+    --accent-hover:    #106ebe;
+    --accent-active:   #005a9e;
+    --accent-bg:       rgba(0, 120, 212, 0.08);
+
+    --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md:       0 3px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg:       0 8px 20px rgba(0, 0, 0, 0.12);
+  }
 }
