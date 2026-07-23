@@ -44,7 +44,7 @@ export default function SettingsModal({ onClose, onRefresh }) {
     if (theme === 'system') localStorage.removeItem('theme');
     else localStorage.setItem('theme', theme);
 
-    document.documentElement.classList.remove('dark', 'light', 'fusion', 'glass', 'system');
+    document.documentElement.classList.remove('dark', 'light', 'neon', 'glass', 'nexus', 'system');
     if (theme !== 'system') {
       document.documentElement.classList.add(theme);
     } else {
@@ -137,8 +137,9 @@ export default function SettingsModal({ onClose, onRefresh }) {
   const themeOptions = [
     { value: 'dark', label: '暗色', icon: 'moon' },
     { value: 'light', label: '亮色', icon: 'sun' },
-    { value: 'fusion', label: 'Fusion', icon: 'layers' },
-    { value: 'glass', label: 'Glass', icon: 'wind' },
+    { value: 'neon', label: 'Neon', icon: 'rocket' },
+    { value: 'glass', label: 'Glass', icon: 'image' },
+    { value: 'nexus', label: 'Nexus', icon: 'sparkles' },
     { value: 'system', label: '跟随系统', icon: 'monitor' },
   ];
 

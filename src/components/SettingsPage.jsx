@@ -38,7 +38,7 @@ export default function SettingsPage() {
   };
 
   const applyTheme = (newTheme) => {
-    document.documentElement.classList.remove('dark', 'light', 'fusion', 'glass', 'system');
+    document.documentElement.classList.remove('dark', 'light', 'neon', 'glass', 'nexus', 'system');
     if (newTheme !== 'system') {
       document.documentElement.classList.add(newTheme);
       localStorage.setItem('theme', newTheme);
@@ -151,8 +151,9 @@ export default function SettingsPage() {
   const themeOptions = [
     { value: 'dark',   label: '暗色', icon: 'moon' },
     { value: 'light',  label: '亮色', icon: 'sun' },
-    { value: 'fusion', label: 'Fusion', icon: 'layers' },
-    { value: 'glass',  label: 'Glass', icon: 'wind' },
+    { value: 'neon',   label: 'Neon', icon: 'rocket' },
+    { value: 'glass',  label: 'Glass', icon: 'image' },
+    { value: 'nexus',  label: 'Nexus', icon: 'sparkles' },
     { value: 'system', label: '跟随系统', icon: 'monitor' },
   ];
 

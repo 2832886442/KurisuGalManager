@@ -4,7 +4,7 @@ import Icon from './Icon';
 /**
  * 悬浮快捷工具栏(灵动岛风格)
  * 默认隐藏,鼠标移到游戏列表上方区域才显示。
- * 主题切换按钮在不支持亮暗切换的主题(fusion/glass)时禁用。
+ * 主题切换按钮在不支持亮暗切换的主题(neon/glass/nexus)时禁用。
  */
 export default function FloatToolbar({ onAddGame, onRefresh }) {
   const [isLight, setIsLight] = useState(() => document.documentElement.classList.contains('light'));
@@ -16,13 +16,13 @@ export default function FloatToolbar({ onAddGame, onRefresh }) {
     const observer = new MutationObserver(() => {
       const html = document.documentElement;
       setIsLight(html.classList.contains('light'));
-      // fusion/glass 主题不支持亮暗切换
-      setThemeFixed(html.classList.contains('fusion') || html.classList.contains('glass'));
+      // neon/glass/nexus 主题不支持亮暗切换
+      setThemeFixed(html.classList.contains('neon') || html.classList.contains('glass') || html.classList.contains('nexus'));
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     // 初始化检查
     const html = document.documentElement;
-    setThemeFixed(html.classList.contains('fusion') || html.classList.contains('glass'));
+    setThemeFixed(html.classList.contains('neon') || html.classList.contains('glass') || html.classList.contains('nexus'));
     return () => observer.disconnect();
   }, []);
 

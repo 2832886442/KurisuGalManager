@@ -169,112 +169,283 @@ html.light,
   --shadow-neon-lg:  var(--shadow-lg);
 }
 
-/* ==================== Fusion 主题 - Qt Fusion ==================== */
-html.fusion,
-:root.fusion {
-  --bg-app:        #242424;
-  --bg-sidebar:    #2d2d2d;
-  --bg-panel:      #313131;
-  --bg-content:    #242424;
-  --bg-card:       #363636;
-  --bg-card-hover: #3d3d3d;
-  --bg-elevated:   #424242;
-  --bg-input:      #2a2a2a;
+/* ==================== Neon 主题 - 复古未来主义游戏平台 ==================== */
+/* Hallmark · macrostructure: Marquee Hero · tone: atmospheric · anchor hue: cool-neon
+ * 暗色纸面 + 霓虹青/品红双强调 + 发光阴影 + 3D 卡片深度
+ * 不支持亮暗切换(theme-fixed)
+ */
+html.neon,
+:root.neon {
+  /* ── 背景层级(极深紫黑,赛博空间感)── */
+  --bg-app:        #0a0a14;
+  --bg-sidebar:    #0f0f1c;
+  --bg-panel:      #12121f;
+  --bg-content:    #0a0a14;
+  --bg-card:       #16162a;
+  --bg-card-hover: #1e1e36;
+  --bg-elevated:   #20203c;
+  --bg-input:      #0d0d18;
 
   --bg-deep:    var(--bg-app);
   --bg-dark:    var(--bg-sidebar);
   --bg-mid:     var(--bg-content);
   --bg-secondary: var(--bg-card);
-  --bg-overlay: rgba(0, 0, 0, 0.7);
-  --bg-glass:   var(--bg-elevated);
+  --bg-overlay: rgba(0, 0, 0, 0.75);
+  --bg-glass:   rgba(22, 22, 42, 0.85);
   --bg-toolbar: var(--bg-elevated);
 
-  --text-primary:    #ffffff;
-  --text-secondary:  #d4d4d4;
-  --text-muted:      #969696;
-  --text-disabled:   #646464;
+  /* ── 文字(高对比,冷白)── */
+  --text-primary:    #e8f4ff;
+  --text-secondary:  #a8b8d8;
+  --text-muted:      #6a7a9a;
+  --text-disabled:   #3a4a6a;
 
-  --border-subtle:   rgba(255, 255, 255, 0.08);
-  --border-default:  rgba(255, 255, 255, 0.15);
-  --border-strong:   rgba(255, 255, 255, 0.25);
+  /* ── 边框(霓虹微光)── */
+  --border-subtle:   rgba(0, 229, 255, 0.08);
+  --border-default:  rgba(0, 229, 255, 0.15);
+  --border-strong:   rgba(0, 229, 255, 0.30);
   --border-color:    var(--border-default);
-  --border-glow:     transparent;
+  --border-glow:     rgba(0, 229, 255, 0.4);
 
-  --accent:          #3772c7;
-  --accent-hover:    #4a85d6;
-  --accent-active:   #2d5ea3;
-  --accent-light:    rgba(55, 114, 199, 0.15);
-  --accent-bg:       rgba(55, 114, 199, 0.15);
-  --accent-bg-hover: rgba(55, 114, 199, 0.25);
+  /* ── 强调色(霓虹青为主)── */
+  --accent:          #00e5ff;
+  --accent-hover:    #33ebff;
+  --accent-active:   #00c2d9;
+  --accent-light:    rgba(0, 229, 255, 0.15);
+  --accent-bg:       rgba(0, 229, 255, 0.10);
+  --accent-bg-hover: rgba(0, 229, 255, 0.20);
 
-  --danger:          #c44343;
-  --danger-hover:    #d65252;
-  --success:         #3c863c;
-  --warning:         #c89400;
+  /* ── 次强调(品红,用于状态/高亮)── */
+  --accent-2:        #ff2e88;
+  --accent-2-light:  rgba(255, 46, 136, 0.15);
 
-  --shadow-sm:       0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-md:       0 4px 10px rgba(0, 0, 0, 0.5);
-  --shadow-lg:       0 8px 24px rgba(0, 0, 0, 0.6);
-  --shadow-modal:    0 12px 36px rgba(0, 0, 0, 0.7);
-  --shadow-card:     var(--shadow-sm);
-  --shadow-card-hover: var(--shadow-md);
-  --shadow-neon-sm:  var(--shadow-sm);
-  --shadow-neon-md:  var(--shadow-md);
-  --shadow-neon-lg:  var(--shadow-lg);
+  /* ── 状态色(高饱和霓虹)── */
+  --status-unplayed: #6a7a9a;
+  --status-playing:  #00e5ff;
+  --status-completed:#39ff14;
+  --status-shelved:  #ff2e88;
+  --status-running:  #fff200;
+
+  /* ── 功能色 ── */
+  --danger:          #ff2e88;
+  --danger-hover:    #ff5aa8;
+  --success:         #39ff14;
+  --warning:         #fff200;
+  --color-success:   var(--success);
+  --color-warning:   var(--warning);
+  --color-danger:    var(--danger);
+  --color-danger-hover: var(--danger-hover);
+
+  /* ── 阴影(霓虹发光效果)── */
+  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-lg:       0 8px 24px rgba(0, 0, 0, 0.7);
+  --shadow-modal:    0 16px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--border-glow);
+  --shadow-card:     0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 8px 24px rgba(0, 229, 255, 0.15), 0 0 0 1px var(--border-glow);
+  --shadow-neon-sm:  0 0 8px rgba(0, 229, 255, 0.3);
+  --shadow-neon-md:  0 0 16px rgba(0, 229, 255, 0.4), 0 0 4px rgba(0, 229, 255, 0.6);
+  --shadow-neon-lg:  0 0 24px rgba(0, 229, 255, 0.5), 0 0 8px rgba(255, 46, 136, 0.3);
+
+  /* ── 圆角(略锐利,科技感)── */
+  --radius-sm:    3px;
+  --radius-md:    5px;
+  --radius:       var(--radius-md);
+  --radius-lg:    8px;
+  --radius-card:  var(--radius-md);
+  --radius-xl:    12px;
+  --radius-full:  9999px;
+
+  /* ── 过渡(略快,响应灵敏)── */
+  --transition-fast: 100ms ease-out;
+  --transition:      180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 260ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ==================== Glass 主题 - 毛玻璃效果 ==================== */
+/* ==================== Glass 主题 - SaaS 数据分析毛玻璃 ==================== */
+/* Hallmark · macrostructure: Bento Grid · tone: modern-minimal · anchor hue: cool-blue
+ * 亮色纸面 + 毛玻璃卡片 + 专业蓝强调 + 数据可视化友好
+ * 不支持亮暗切换(theme-fixed)
+ */
 html.glass,
 :root.glass {
-  --bg-app:        rgba(26, 26, 36, 0.85);
-  --bg-sidebar:    rgba(30, 30, 40, 0.9);
-  --bg-panel:      rgba(36, 36, 48, 0.85);
-  --bg-content:    rgba(26, 26, 36, 0.85);
-  --bg-card:       rgba(42, 42, 56, 0.7);
-  --bg-card-hover: rgba(50, 50, 66, 0.8);
-  --bg-elevated:   rgba(54, 54, 70, 0.9);
-  --bg-input:      rgba(32, 32, 42, 0.7);
+  /* ── 背景层级(亮色半透明,毛玻璃基底)── */
+  --bg-app:        rgba(238, 242, 248, 0.92);
+  --bg-sidebar:    rgba(255, 255, 255, 0.72);
+  --bg-panel:      rgba(248, 250, 253, 0.80);
+  --bg-content:    rgba(238, 242, 248, 0.92);
+  --bg-card:       rgba(255, 255, 255, 0.65);
+  --bg-card-hover: rgba(255, 255, 255, 0.82);
+  --bg-elevated:   rgba(255, 255, 255, 0.88);
+  --bg-input:      rgba(255, 255, 255, 0.55);
 
   --bg-deep:    var(--bg-app);
   --bg-dark:    var(--bg-sidebar);
   --bg-mid:     var(--bg-content);
   --bg-secondary: var(--bg-card);
-  --bg-overlay: rgba(0, 0, 0, 0.5);
-  --bg-glass:   rgba(255, 255, 255, 0.05);
-  --bg-toolbar: rgba(54, 54, 70, 0.9);
+  --bg-overlay: rgba(15, 23, 42, 0.35);
+  --bg-glass:   rgba(255, 255, 255, 0.50);
+  --bg-toolbar: rgba(255, 255, 255, 0.85);
 
-  --text-primary:    #f0f0f4;
-  --text-secondary:  #c4c4cc;
-  --text-muted:      #8a8a96;
-  --text-disabled:   #5a5a66;
+  /* ── 文字(深蓝灰,专业可读)── */
+  --text-primary:    #0f172a;
+  --text-secondary:  #475569;
+  --text-muted:      #94a3b8;
+  --text-disabled:   #cbd5e1;
 
-  --border-subtle:   rgba(255, 255, 255, 0.08);
-  --border-default:  rgba(255, 255, 255, 0.12);
-  --border-strong:   rgba(255, 255, 255, 0.20);
+  /* ── 边框(细微,玻璃质感)── */
+  --border-subtle:   rgba(15, 23, 42, 0.06);
+  --border-default:  rgba(15, 23, 42, 0.10);
+  --border-strong:   rgba(15, 23, 42, 0.18);
   --border-color:    var(--border-default);
-  --border-glow:     rgba(77, 166, 255, 0.3);
+  --border-glow:     rgba(59, 130, 246, 0.25);
 
-  --accent:          #66b3ff;
-  --accent-hover:    #80c1ff;
-  --accent-active:   #4da6ff;
-  --accent-light:    rgba(102, 179, 255, 0.15);
-  --accent-bg:       rgba(102, 179, 255, 0.10);
-  --accent-bg-hover: rgba(102, 179, 255, 0.20);
+  /* ── 强调色(专业蓝,SaaS 标准)── */
+  --accent:          #3b82f6;
+  --accent-hover:    #2563eb;
+  --accent-active:   #1d4ed8;
+  --accent-light:    rgba(59, 130, 246, 0.10);
+  --accent-bg:       rgba(59, 130, 246, 0.08);
+  --accent-bg-hover: rgba(59, 130, 246, 0.14);
 
-  --danger:          #ff8080;
-  --danger-hover:    #ff6b6b;
-  --success:         #80ff80;
-  --warning:         #ffcc66;
+  /* ── 次强调(青绿,用于成功/数据高亮)── */
+  --accent-2:        #06b6d4;
+  --accent-2-light:  rgba(6, 182, 212, 0.10);
 
-  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-md:       0 3px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg:       0 8px 20px rgba(0, 0, 0, 0.4);
-  --shadow-modal:    0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-card:     var(--shadow-sm);
-  --shadow-card-hover: var(--shadow-md);
+  /* ── 状态色(专业柔和)── */
+  --status-unplayed: #94a3b8;
+  --status-playing:  #3b82f6;
+  --status-completed:#10b981;
+  --status-shelved:  #f59e0b;
+  --status-running:  #06b6d4;
+
+  /* ── 功能色 ── */
+  --danger:          #ef4444;
+  --danger-hover:    #dc2626;
+  --success:         #10b981;
+  --warning:         #f59e0b;
+  --color-success:   var(--success);
+  --color-warning:   var(--warning);
+  --color-danger:    var(--danger);
+  --color-danger-hover: var(--danger-hover);
+
+  /* ── 阴影(柔和分层,毛玻璃深度)── */
+  --shadow-sm:       0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md:       0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg:       0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+  --shadow-modal:    0 24px 48px rgba(15, 23, 42, 0.18), 0 0 0 1px var(--border-default);
+  --shadow-card:     0 1px 3px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  --shadow-card-hover: 0 8px 24px rgba(59, 130, 246, 0.12), 0 0 0 1px var(--border-glow);
   --shadow-neon-sm:  var(--shadow-sm);
   --shadow-neon-md:  var(--shadow-md);
   --shadow-neon-lg:  var(--shadow-lg);
+
+  /* ── 圆角(较大,柔和现代)── */
+  --radius-sm:    6px;
+  --radius-md:    10px;
+  --radius:       var(--radius-md);
+  --radius-lg:    14px;
+  --radius-card:  var(--radius-lg);
+  --radius-xl:    20px;
+  --radius-full:  9999px;
+
+  /* ── 过渡(平滑,专业感)── */
+  --transition-fast: 140ms ease-out;
+  --transition:      220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==================== Nexus 主题 - AI/Fintech 暗色毛玻璃 ==================== */
+/* Hallmark · macrostructure: Stat-Led · tone: atmospheric · anchor hue: chromatic-purple
+ * 暗色纸面 + AI 紫强调 + 安全科技感毛玻璃 + 信任指示器风格
+ * 不支持亮暗切换(theme-fixed)
+ */
+html.nexus,
+:root.nexus {
+  /* ── 背景层级(深紫黑,金融科技安全感)── */
+  --bg-app:        #0c0a14;
+  --bg-sidebar:    #110f1c;
+  --bg-panel:      #15121f;
+  --bg-content:    #0c0a14;
+  --bg-card:       rgba(28, 24, 42, 0.75);
+  --bg-card-hover: rgba(36, 30, 54, 0.85);
+  --bg-elevated:   rgba(32, 27, 48, 0.92);
+  --bg-input:      rgba(18, 15, 28, 0.80);
+
+  --bg-deep:    var(--bg-app);
+  --bg-dark:    var(--bg-sidebar);
+  --bg-mid:     var(--bg-content);
+  --bg-secondary: var(--bg-card);
+  --bg-overlay: rgba(0, 0, 0, 0.65);
+  --bg-glass:   rgba(255, 255, 255, 0.04);
+  --bg-toolbar: rgba(32, 27, 48, 0.92);
+
+  /* ── 文字(柔白,暗色可读)── */
+  --text-primary:    #f1f0f5;
+  --text-secondary:  #b8b4c8;
+  --text-muted:      #7a748c;
+  --text-disabled:   #4a4458;
+
+  /* ── 边框(紫色微光,安全科技感)── */
+  --border-subtle:   rgba(168, 85, 247, 0.08);
+  --border-default:  rgba(168, 85, 247, 0.14);
+  --border-strong:   rgba(168, 85, 247, 0.26);
+  --border-color:    var(--border-default);
+  --border-glow:     rgba(168, 85, 247, 0.35);
+
+  /* ── 强调色(AI 紫,主色)── */
+  --accent:          #a855f7;
+  --accent-hover:    #c084fc;
+  --accent-active:   #9333ea;
+  --accent-light:    rgba(168, 85, 247, 0.14);
+  --accent-bg:       rgba(168, 85, 247, 0.10);
+  --accent-bg-hover: rgba(168, 85, 247, 0.18);
+
+  /* ── 次强调(电青,用于数据/安全指示)── */
+  --accent-2:        #22d3ee;
+  --accent-2-light:  rgba(34, 211, 238, 0.12);
+
+  /* ── 状态色(科技感,略柔和)── */
+  --status-unplayed: #7a748c;
+  --status-playing:  #a855f7;
+  --status-completed:#34d399;
+  --status-shelved:  #fbbf24;
+  --status-running:  #22d3ee;
+
+  /* ── 功能色 ── */
+  --danger:          #f43f5e;
+  --danger-hover:    #fb7185;
+  --success:         #34d399;
+  --warning:         #fbbf24;
+  --color-success:   var(--success);
+  --color-warning:   var(--warning);
+  --color-danger:    var(--danger);
+  --color-danger-hover: var(--danger-hover);
+
+  /* ── 阴影(深色分层 + 紫色微光)── */
+  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.5), 0 0 1px rgba(168, 85, 247, 0.1);
+  --shadow-lg:       0 12px 28px rgba(0, 0, 0, 0.6), 0 0 1px rgba(168, 85, 247, 0.15);
+  --shadow-modal:    0 20px 44px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--border-glow);
+  --shadow-card:     0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  --shadow-card-hover: 0 12px 28px rgba(168, 85, 247, 0.18), 0 0 0 1px var(--border-glow);
+  --shadow-neon-sm:  0 0 8px rgba(168, 85, 247, 0.25);
+  --shadow-neon-md:  0 0 16px rgba(168, 85, 247, 0.35), 0 0 4px rgba(34, 211, 238, 0.15);
+  --shadow-neon-lg:  0 0 24px rgba(168, 85, 247, 0.45), 0 0 8px rgba(34, 211, 238, 0.2);
+
+  /* ── 圆角(中等,精致科技感)── */
+  --radius-sm:    5px;
+  --radius-md:    8px;
+  --radius:       var(--radius-md);
+  --radius-lg:    12px;
+  --radius-card:  var(--radius-md);
+  --radius-xl:    16px;
+  --radius-full:  9999px;
+
+  /* ── 过渡(沉稳,安全科技感)── */
+  --transition-fast: 120ms ease-out;
+  --transition:      200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ==================== System 主题 - 跟随系统 ==================== */

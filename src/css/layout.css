@@ -480,7 +480,7 @@
   border-radius: var(--radius-full);
 }
 
-/* 禁用态:fusion/glass 主题下不支持亮暗切换 */
+/* 禁用态:neon/glass/nexus 主题下不支持亮暗切换 */
 .float-toolbar .toolbar-btn.disabled,
 .float-toolbar .toolbar-btn:disabled {
   opacity: 0.4;

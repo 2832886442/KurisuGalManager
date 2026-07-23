@@ -17,6 +17,7 @@ import './css/fonts.css';
 import './css/animations.css';
 import './css/layout.css';
 import './css/components.css';
+import './css/themes.css';
 import './css/responsive.css';
 
 const initTheme = () => {

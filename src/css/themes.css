@@ -1,0 +1,732 @@
+/* ============================================================
+   themes.css - 主题专属视觉增强(Neon / Glass / Nexus)
+   Hallmark · 3 主题签名动作,仅增强关键页面视觉层
+   不触碰排名管理(.ranking-*)样式
+   ============================================================ */
+
+/* ============================================================
+   Neon 主题 - 复古未来主义游戏平台签名动作
+   · 霓虹发光边框 · 扫描线纹理 · 3D 卡片深度 · 网格背景
+   ============================================================ */
+
+/* ── 全局背景:赛博网格 ── */
+html.neon body {
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: -1px -1px;
+}
+
+/* ── 侧边栏:霓虹活跃指示器 ── */
+html.neon .sidebar {
+  border-right-color: var(--border-default);
+}
+
+html.neon .sidebar-btn.active {
+  background: var(--accent-bg);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+html.neon .sidebar-btn.active::before {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent), 0 0 4px var(--accent);
+}
+
+html.neon .sidebar-logo {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 游戏卡片:霓虹发光 + 3D 悬浮 ── */
+html.neon .game-card {
+  border-color: var(--border-subtle);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-input) 100%);
+}
+
+html.neon .game-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card-hover), var(--shadow-neon-sm);
+  transform: translateY(-2px);
+}
+
+html.neon .game-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-neon-md);
+}
+
+/* 封面扫描线效果 */
+html.neon .card-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 229, 255, 0.03) 2px,
+    rgba(0, 229, 255, 0.03) 3px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 状态徽章霓虹 */
+html.neon .card-status-badge.status-running {
+  background: rgba(255, 242, 0, 0.9);
+  color: #0a0a14;
+  box-shadow: 0 0 12px rgba(255, 242, 0, 0.6);
+}
+
+html.neon .card-status-badge.status-playing {
+  text-shadow: 0 0 6px var(--status-playing);
+}
+
+html.neon .card-status-badge.status-completed {
+  text-shadow: 0 0 6px var(--status-completed);
+}
+
+/* ── 按钮:霓虹发光 ── */
+html.neon .btn-primary {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(0, 229, 255, 0.3);
+}
+
+html.neon .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 0 1px var(--accent-hover), 0 0 20px rgba(0, 229, 255, 0.5);
+}
+
+/* ── 工具栏:霓虹边框 ── */
+html.neon .toolbar-group {
+  border-color: var(--border-default);
+  background: var(--bg-input);
+}
+
+html.neon .toolbar-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 悬浮工具栏:霓虹胶囊 ── */
+html.neon .float-toolbar.visible {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md), var(--shadow-neon-sm);
+}
+
+/* ── 面板:霓虹分类项 ── */
+html.neon .panel-cat-item.active {
+  border-left-color: var(--accent);
+  box-shadow: inset 2px 0 8px rgba(0, 229, 255, 0.2);
+}
+
+/* ── 主页统计卡:霓虹高亮 ── */
+html.neon .home-stat-card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-input) 100%);
+  border-color: var(--border-default);
+}
+
+html.neon .home-stat-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+html.neon .stat-icon {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 图表条:霓虹填充 ── */
+html.neon .chart-bar-fill {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}
+
+/* ── 欢迎页:霓虹英雄区 ── */
+html.neon .welcome-hero {
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-app) 100%);
+  border-bottom-color: var(--border-default);
+}
+
+html.neon .welcome-orb-1 {
+  background: var(--accent);
+  opacity: 0.45;
+  filter: blur(60px);
+}
+
+html.neon .welcome-orb-2 {
+  background: var(--accent-2);
+  opacity: 0.4;
+  filter: blur(60px);
+}
+
+html.neon .welcome-orb-3 {
+  background: var(--status-completed);
+  opacity: 0.35;
+  filter: blur(60px);
+}
+
+html.neon .welcome-logo-badge {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-neon-md);
+}
+
+html.neon .welcome-title {
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.4), 0 0 4px rgba(0, 229, 255, 0.6);
+}
+
+html.neon .welcome-feature-card {
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-input) 100%);
+  border-color: var(--border-default);
+}
+
+html.neon .welcome-feature-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+html.neon .welcome-feature-icon {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 弹窗:霓虹边框 ── */
+html.neon .modal {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-modal), var(--shadow-neon-sm);
+}
+
+/* ── 搜索框:霓虹聚焦 ── */
+html.neon .panel-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light), 0 0 12px rgba(0, 229, 255, 0.2);
+}
+
+/* ── 滚动条:霓虹 ── */
+html.neon ::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.25);
+}
+
+html.neon ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.4);
+}
+
+
+/* ============================================================
+   Glass 主题 - SaaS 数据分析毛玻璃签名动作
+   · 毛玻璃模糊 · 渐变边框 · 柔和分层阴影 · 数据可视化友好
+   ============================================================ */
+
+/* ── 全局背景:柔和渐变 ── */
+html.glass body {
+  background-image:
+    radial-gradient(ellipse at top left, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
+}
+
+/* ── 侧边栏:毛玻璃 ── */
+html.glass .sidebar {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-right-color: var(--border-default);
+}
+
+html.glass .panel {
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+/* ── 游戏卡片:毛玻璃 + 渐变边框 ── */
+html.glass .game-card {
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: var(--shadow-card);
+}
+
+html.glass .game-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+html.glass .game-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 8px 24px rgba(59, 130, 246, 0.15);
+}
+
+/* 卡片封面:柔和圆角 */
+html.glass .card-cover {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ── 按钮:毛玻璃次要按钮 ── */
+html.glass .btn-secondary {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg-card);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+html.glass .btn-secondary:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+
+/* ── 工具栏:毛玻璃 ── */
+html.glass .top-toolbar {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--bg-toolbar);
+  border-bottom-color: var(--border-default);
+}
+
+html.glass .toolbar-group {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg-glass);
+  border-color: var(--border-default);
+}
+
+html.glass .toolbar-btn.active {
+  background: var(--bg-card);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── 悬浮工具栏:毛玻璃胶囊 ── */
+html.glass .float-toolbar {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--bg-elevated);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+html.glass .float-toolbar.visible:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--border-glow);
+}
+
+/* ── 面板:毛玻璃分类项 ── */
+html.glass .panel-cat-item.active {
+  background: var(--bg-card);
+  border-left-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+html.glass .panel-tag-item.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+/* ── 搜索框:毛玻璃 ── */
+html.glass .panel-search-input {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg-input);
+  border-color: var(--border-default);
+}
+
+html.glass .panel-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+  background: var(--bg-card);
+}
+
+/* ── 主页统计卡:毛玻璃 ── */
+html.glass .home-stat-card {
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: var(--shadow-card);
+}
+
+html.glass .home-stat-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+html.glass .stat-icon {
+  background: linear-gradient(135deg, var(--accent-bg) 0%, var(--accent-2-light) 100%);
+  color: var(--accent);
+}
+
+/* ── 图表面板:毛玻璃 ── */
+html.glass .home-chart-panel {
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: var(--shadow-card);
+}
+
+html.glass .chart-bar-fill {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  border-radius: var(--radius-full);
+}
+
+/* ── 欢迎页:毛玻璃英雄区 ── */
+html.glass .welcome-hero {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--bg-card);
+  border-bottom-color: var(--border-default);
+}
+
+html.glass .welcome-orb-1 {
+  background: var(--accent);
+  opacity: 0.25;
+  filter: blur(80px);
+}
+
+html.glass .welcome-orb-2 {
+  background: var(--accent-2);
+  opacity: 0.2;
+  filter: blur(80px);
+}
+
+html.glass .welcome-orb-3 {
+  background: var(--status-completed);
+  opacity: 0.18;
+  filter: blur(80px);
+}
+
+html.glass .welcome-logo-badge {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--bg-card);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+html.glass .welcome-feature-card {
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: var(--shadow-card);
+}
+
+html.glass .welcome-feature-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+html.glass .welcome-feature-icon {
+  background: linear-gradient(135deg, var(--accent-bg) 0%, var(--accent-2-light) 100%);
+  color: var(--accent);
+}
+
+html.glass .welcome-quicklinks-card {
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ── 弹窗:强毛玻璃 ── */
+html.glass .modal-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.25);
+}
+
+html.glass .modal {
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-modal);
+}
+
+/* ── 滚动条:柔和 ── */
+html.glass ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: var(--radius-full);
+}
+
+html.glass ::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.25);
+}
+
+
+/* ============================================================
+   Nexus 主题 - AI/Fintech 暗色毛玻璃签名动作
+   · 紫色发光边框 · 安全科技感 · 暗色毛玻璃 · 数据指示器风格
+   ============================================================ */
+
+/* ── 全局背景:紫色径向光晕 + 科技网格 ── */
+html.nexus body {
+  background-image:
+    radial-gradient(ellipse at top, rgba(168, 85, 247, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(34, 211, 238, 0.04) 0%, transparent 60%);
+}
+
+/* ── 侧边栏:紫色发光指示器 ── */
+html.nexus .sidebar {
+  border-right-color: var(--border-default);
+}
+
+html.nexus .sidebar-btn.active {
+  background: var(--accent-bg);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+html.nexus .sidebar-btn.active::before {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent), 0 0 4px var(--accent);
+}
+
+html.nexus .sidebar-logo {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 游戏卡片:暗色毛玻璃 + 紫色发光 ── */
+html.nexus .game-card {
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+html.nexus .game-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card-hover), var(--shadow-neon-sm);
+  transform: translateY(-2px);
+}
+
+html.nexus .game-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-neon-md);
+}
+
+/* 状态徽章:安全指示器风格 */
+html.nexus .card-status-badge {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(12, 10, 20, 0.85);
+  border: 1px solid var(--border-default);
+}
+
+html.nexus .card-status-badge.status-running {
+  background: rgba(34, 211, 238, 0.85);
+  color: #0c0a14;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+}
+
+html.nexus .card-status-badge.status-playing {
+  text-shadow: 0 0 6px var(--accent);
+}
+
+/* ── 按钮:紫色发光 ── */
+html.nexus .btn-primary {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+html.nexus .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 0 1px var(--accent-hover), 0 0 20px rgba(168, 85, 247, 0.5);
+}
+
+/* ── 工具栏:暗色毛玻璃 ── */
+html.nexus .top-toolbar {
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  background: var(--bg-toolbar);
+  border-bottom-color: var(--border-default);
+}
+
+html.nexus .toolbar-group {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg-glass);
+  border-color: var(--border-default);
+}
+
+html.nexus .toolbar-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 悬浮工具栏:紫色胶囊 ── */
+html.nexus .float-toolbar {
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+}
+
+html.nexus .float-toolbar.visible:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md), var(--shadow-neon-sm);
+}
+
+/* ── 面板:紫色分类项 ── */
+html.nexus .panel-cat-item.active {
+  border-left-color: var(--accent);
+  box-shadow: inset 2px 0 8px rgba(168, 85, 247, 0.2);
+}
+
+html.nexus .panel-tag-item.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 搜索框:紫色聚焦 ── */
+html.nexus .panel-search-input {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg-input);
+}
+
+html.nexus .panel-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light), 0 0 12px rgba(168, 85, 247, 0.2);
+}
+
+/* ── 主页统计卡:暗色毛玻璃 + 紫色高亮 ── */
+html.nexus .home-stat-card {
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+
+html.nexus .home-stat-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+html.nexus .stat-icon {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+/* ── 图表条:紫青渐变 ── */
+html.nexus .chart-bar-fill {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+}
+
+/* ── 图表面板:暗色毛玻璃 ── */
+html.nexus .home-chart-panel {
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+
+/* ── 欢迎页:紫色科技英雄区 ── */
+html.nexus .welcome-hero {
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  background: var(--bg-card);
+  border-bottom-color: var(--border-default);
+}
+
+html.nexus .welcome-orb-1 {
+  background: var(--accent);
+  opacity: 0.4;
+  filter: blur(60px);
+}
+
+html.nexus .welcome-orb-2 {
+  background: var(--accent-2);
+  opacity: 0.3;
+  filter: blur(60px);
+}
+
+html.nexus .welcome-orb-3 {
+  background: var(--status-completed);
+  opacity: 0.25;
+  filter: blur(60px);
+}
+
+html.nexus .welcome-logo-badge {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-neon-md);
+}
+
+html.nexus .welcome-title {
+  text-shadow: 0 0 20px rgba(168, 85, 247, 0.4), 0 0 4px rgba(168, 85, 247, 0.6);
+}
+
+html.nexus .welcome-feature-card {
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+
+html.nexus .welcome-feature-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+html.nexus .welcome-feature-icon {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-neon-sm);
+}
+
+html.nexus .welcome-quicklinks-card {
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+
+/* ── 弹窗:紫色边框发光 ── */
+html.nexus .modal-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+html.nexus .modal {
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-modal), var(--shadow-neon-sm);
+}
+
+/* ── 滚动条:紫色 ── */
+html.nexus ::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+}
+
+html.nexus ::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.4);
+}
+
+
+/* ============================================================
+   响应式:reduced-motion 降级
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html.neon .game-card:hover,
+  html.glass .game-card:hover,
+  html.nexus .game-card:hover,
+  html.glass .home-stat-card:hover,
+  html.glass .welcome-feature-card:hover {
+    transform: none;
+  }
+}
