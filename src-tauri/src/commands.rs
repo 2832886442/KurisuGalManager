@@ -1912,7 +1912,9 @@ pub async fn capture_screenshot(
                     wingdi::{
                         BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, GetDIBits, SelectObject,
                     },
-                    winuser::{GetForegroundWindow, GetWindowDC, GetWindowRect, ReleaseDC},
+                    winuser::{
+                        GetForegroundWindow, GetWindowDC, GetWindowRect, PrintWindow, ReleaseDC,
+                    },
                 },
             };
 
@@ -1961,14 +1963,21 @@ pub async fn capture_screenshot(
 
             let old_bitmap = unsafe { SelectObject(hdc_mem, hbitmap as *mut _) };
 
-            if unsafe { BitBlt(hdc_mem, 0, 0, width, height, hdc_window, 0, 0, 0x00CC0020) } == 0 {
-                unsafe {
-                    SelectObject(hdc_mem, old_bitmap);
-                    winapi::um::wingdi::DeleteObject(hbitmap as *mut _);
-                    winapi::um::wingdi::DeleteDC(hdc_mem);
-                    ReleaseDC(hwnd, hdc_window);
-                };
-                return Err(AppError::new(ErrorCode::DataWriteFailed, "复制位图失败"));
+            let print_success = unsafe { PrintWindow(hwnd, hdc_mem, 3) } != 0;
+
+            if !print_success {
+                debug!("PrintWindow失败，回退到BitBlt");
+                if unsafe { BitBlt(hdc_mem, 0, 0, width, height, hdc_window, 0, 0, 0x00CC0020) }
+                    == 0
+                {
+                    unsafe {
+                        SelectObject(hdc_mem, old_bitmap);
+                        winapi::um::wingdi::DeleteObject(hbitmap as *mut _);
+                        winapi::um::wingdi::DeleteDC(hdc_mem);
+                        ReleaseDC(hwnd, hdc_window);
+                    };
+                    return Err(AppError::new(ErrorCode::DataWriteFailed, "复制位图失败"));
+                }
             }
 
             let mut bmp_info: winapi::um::wingdi::BITMAPINFO = unsafe { std::mem::zeroed() };
@@ -2001,6 +2010,11 @@ pub async fn capture_screenshot(
                 winapi::um::wingdi::DeleteDC(hdc_mem);
                 ReleaseDC(hwnd, hdc_window);
             };
+
+            for pixel in buffer.chunks_mut(4) {
+                pixel.swap(0, 2);
+                pixel[3] = 255;
+            }
 
             image::RgbaImage::from_raw(width as u32, height as u32, buffer)
                 .ok_or_else(|| AppError::new(ErrorCode::DataWriteFailed, "创建图像失败"))?
