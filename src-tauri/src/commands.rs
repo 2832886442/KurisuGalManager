@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::sync::{Mutex, OnceLock};
+use tauri::Manager;
 use tauri::{AppHandle, Emitter};
 
 // ======================== 游戏数据缓存 ========================
@@ -1835,8 +1836,20 @@ pub async fn update_rank_level(
     .map_err(to_frontend_error)
 }
 
-pub fn play_screenshot_sound() {
-    let sound_path = crate::path_manager::sound_dir().join("screenshot.wav");
+pub fn play_screenshot_sound(app_handle: Option<&tauri::AppHandle>) {
+    let sound_path = match app_handle {
+        Some(handle) => {
+            match handle.path().resolve(
+                "resources/sound/screenshot.wav",
+                tauri::path::BaseDirectory::Resource,
+            ) {
+                Ok(p) => p,
+                Err(_) => crate::path_manager::sound_dir().join("screenshot.wav"),
+            }
+        }
+        None => crate::path_manager::sound_dir().join("screenshot.wav"),
+    };
+
     if !sound_path.exists() {
         warn!("截图音效文件不存在: {}", sound_path.display());
         return;
@@ -1881,8 +1894,12 @@ pub fn play_screenshot_sound() {
 }
 
 #[tauri::command]
-pub async fn capture_screenshot(game_id: String) -> Result<String, String> {
+pub async fn capture_screenshot(
+    game_id: String,
+    app_handle: tauri::AppHandle,
+) -> Result<String, String> {
     let game_id_clone = game_id.clone();
+    let app_handle_clone = app_handle.clone();
     tauri::async_runtime::spawn_blocking(move || -> Result<String, AppError> {
         info!("开始截取前台窗口截图, game_id: {}", game_id);
 
@@ -2025,7 +2042,7 @@ pub async fn capture_screenshot(game_id: String) -> Result<String, String> {
         crate::logger::log_screenshot_capture(&game_id, &path_str, true, None);
         info!("截图已捕获并保存: {}", path_str);
 
-        play_screenshot_sound();
+        play_screenshot_sound(Some(&app_handle_clone));
 
         Ok(path_str)
     })

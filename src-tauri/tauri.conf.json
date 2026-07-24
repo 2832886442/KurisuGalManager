@@ -28,6 +28,9 @@
       "icons/64x64.ico",
       "icons/128x128.ico",
       "icons/256x256.ico"
+    ],
+    "resources": [
+      "resources/sound/"
     ]
   }
 }
