@@ -78,6 +78,19 @@ function AppInner() {
             }
         });
         return () => { unlisten.then(fn => fn()); };
+    }, [state.games]);
+
+    useEffect(() => {
+        const unlisten = listen('screenshot-captured', (event) => {
+            const { success, path, error } = event.payload;
+            if (success) {
+                showToast('success', `截图成功，保存到 ${path}`);
+                loadGames();
+            } else {
+                showToast('error', `截图失败: ${error}`);
+            }
+        });
+        return () => { unlisten.then(fn => fn()); };
     }, []);
 
     const handleAddGame = () => { setEditGameId(null); setShowAdd(true); };

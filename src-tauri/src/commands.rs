@@ -5,6 +5,7 @@ use crate::utils;
 use chrono::Local;
 use log::{debug, info, warn};
 use rfd::FileDialog;
+use rodio;
 use serde_json::json;
 use std::collections::HashMap;
 use std::fs;
@@ -92,6 +93,8 @@ pub async fn get_game_covers(game_ids: Vec<String>) -> Result<HashMap<String, St
 /// 添加游戏
 #[tauri::command]
 pub async fn add_game(_app_handle: AppHandle, mut game: Game) -> Result<AppData, String> {
+    let game_id = game.id.clone();
+    let game_name = game.name.clone();
     tauri::async_runtime::spawn_blocking(move || -> Result<AppData, AppError> {
         utils::validate_path(&game.path)?;
         // 处理封面：Base64 → 文件
@@ -107,11 +110,7 @@ pub async fn add_game(_app_handle: AppHandle, mut game: Game) -> Result<AppData,
         data.games.push(game);
         data_store::write_games_only(&data.games)?;
         update_cache(&data);
-        crate::logger::log_op(
-            "game",
-            "add",
-            serde_json::json!({"count": data.games.len()}),
-        );
+        crate::logger::log_game_add(&game_id, &game_name);
         info!("游戏已添加, 总数: {}", data.games.len());
         Ok(data)
     })
@@ -211,6 +210,7 @@ pub async fn launch_game(
     .map_err(to_frontend_error)?;
 
     crate::game_launcher::register_running_path(&path);
+    crate::game_launcher::register_running_game(&game_id, &path);
 
     let handle2 = app_handle.clone();
     let path2 = path.clone();
@@ -227,6 +227,7 @@ pub async fn launch_game(
         );
 
         crate::game_launcher::unregister_running_path(&path2);
+        crate::game_launcher::unregister_running_game(&game_id2);
 
         let update_result: Result<(), AppError> = (|| {
             let mut data = data_store::read_games()?;
@@ -1826,6 +1827,211 @@ pub async fn update_rank_level(
     })
     .await
     .unwrap_or_else(|e| {
+        Err(AppError::new(
+            ErrorCode::InternalError,
+            format!("任务执行失败: {}", e),
+        ))
+    })
+    .map_err(to_frontend_error)
+}
+
+pub fn play_screenshot_sound() {
+    let sound_path = crate::path_manager::sound_dir().join("screenshot.wav");
+    if !sound_path.exists() {
+        warn!("截图音效文件不存在: {}", sound_path.display());
+        return;
+    }
+
+    std::thread::spawn(move || {
+        let (_stream, stream_handle) = match rodio::OutputStream::try_default() {
+            Ok(s) => s,
+            Err(e) => {
+                warn!("无法获取音频输出流: {}", e);
+                return;
+            }
+        };
+
+        let file = match std::fs::File::open(&sound_path) {
+            Ok(f) => f,
+            Err(e) => {
+                warn!("打开音效文件失败: {}", e);
+                return;
+            }
+        };
+
+        let source = match rodio::Decoder::new(file) {
+            Ok(s) => s,
+            Err(e) => {
+                warn!("解码音效文件失败: {}", e);
+                return;
+            }
+        };
+
+        let sink = match rodio::Sink::try_new(&stream_handle) {
+            Ok(s) => s,
+            Err(e) => {
+                warn!("创建音频接收器失败: {}", e);
+                return;
+            }
+        };
+
+        sink.append(source);
+        sink.sleep_until_end();
+    });
+}
+
+#[tauri::command]
+pub async fn capture_screenshot(game_id: String) -> Result<String, String> {
+    let game_id_clone = game_id.clone();
+    tauri::async_runtime::spawn_blocking(move || -> Result<String, AppError> {
+        info!("开始截取前台窗口截图, game_id: {}", game_id);
+
+        #[cfg(target_os = "windows")]
+        let image = {
+            use std::ptr;
+            use winapi::{
+                shared::windef::RECT,
+                um::{
+                    wingdi::{
+                        BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, GetDIBits, SelectObject,
+                    },
+                    winuser::{GetForegroundWindow, GetWindowDC, GetWindowRect, ReleaseDC},
+                },
+            };
+
+            let hwnd = unsafe { GetForegroundWindow() };
+            if hwnd == ptr::null_mut() {
+                return Err(AppError::new(
+                    ErrorCode::DataWriteFailed,
+                    "无法获取前台窗口",
+                ));
+            }
+
+            let mut rect: RECT = unsafe { std::mem::zeroed() };
+            if unsafe { GetWindowRect(hwnd, &mut rect) } == 0 {
+                return Err(AppError::new(
+                    ErrorCode::DataWriteFailed,
+                    "获取窗口矩形失败",
+                ));
+            }
+
+            let width = (rect.right - rect.left) as i32;
+            let height = (rect.bottom - rect.top) as i32;
+
+            if width <= 0 || height <= 0 {
+                return Err(AppError::new(ErrorCode::DataWriteFailed, "窗口尺寸无效"));
+            }
+
+            let hdc_window = unsafe { GetWindowDC(hwnd) };
+            if hdc_window == ptr::null_mut() {
+                return Err(AppError::new(ErrorCode::DataWriteFailed, "获取窗口DC失败"));
+            }
+
+            let hdc_mem = unsafe { CreateCompatibleDC(hdc_window) };
+            if hdc_mem == ptr::null_mut() {
+                unsafe { ReleaseDC(hwnd, hdc_window) };
+                return Err(AppError::new(ErrorCode::DataWriteFailed, "创建兼容DC失败"));
+            }
+
+            let hbitmap = unsafe { CreateCompatibleBitmap(hdc_window, width, height) };
+            if hbitmap == ptr::null_mut() {
+                unsafe {
+                    winapi::um::wingdi::DeleteDC(hdc_mem);
+                    ReleaseDC(hwnd, hdc_window);
+                };
+                return Err(AppError::new(ErrorCode::DataWriteFailed, "创建位图失败"));
+            }
+
+            let old_bitmap = unsafe { SelectObject(hdc_mem, hbitmap as *mut _) };
+
+            if unsafe { BitBlt(hdc_mem, 0, 0, width, height, hdc_window, 0, 0, 0x00CC0020) } == 0 {
+                unsafe {
+                    SelectObject(hdc_mem, old_bitmap);
+                    winapi::um::wingdi::DeleteObject(hbitmap as *mut _);
+                    winapi::um::wingdi::DeleteDC(hdc_mem);
+                    ReleaseDC(hwnd, hdc_window);
+                };
+                return Err(AppError::new(ErrorCode::DataWriteFailed, "复制位图失败"));
+            }
+
+            let mut bmp_info: winapi::um::wingdi::BITMAPINFO = unsafe { std::mem::zeroed() };
+            bmp_info.bmiHeader.biSize =
+                std::mem::size_of::<winapi::um::wingdi::BITMAPINFOHEADER>() as u32;
+            bmp_info.bmiHeader.biWidth = width;
+            bmp_info.bmiHeader.biHeight = -height;
+            bmp_info.bmiHeader.biPlanes = 1;
+            bmp_info.bmiHeader.biBitCount = 32;
+            bmp_info.bmiHeader.biCompression = winapi::um::wingdi::BI_RGB;
+
+            let buffer_size = (width * height * 4) as usize;
+            let mut buffer: Vec<u8> = vec![0; buffer_size];
+
+            unsafe {
+                GetDIBits(
+                    hdc_window,
+                    hbitmap,
+                    0,
+                    height as u32,
+                    buffer.as_mut_ptr() as *mut _,
+                    &mut bmp_info,
+                    winapi::um::wingdi::DIB_RGB_COLORS,
+                );
+            };
+
+            unsafe {
+                SelectObject(hdc_mem, old_bitmap);
+                winapi::um::wingdi::DeleteObject(hbitmap as *mut _);
+                winapi::um::wingdi::DeleteDC(hdc_mem);
+                ReleaseDC(hwnd, hdc_window);
+            };
+
+            image::RgbaImage::from_raw(width as u32, height as u32, buffer)
+                .ok_or_else(|| AppError::new(ErrorCode::DataWriteFailed, "创建图像失败"))?
+        };
+
+        #[cfg(not(target_os = "windows"))]
+        let image = {
+            return Err(AppError::new(
+                ErrorCode::DataWriteFailed,
+                "截图功能仅支持 Windows",
+            ));
+        };
+
+        let dir = crate::path_manager::game_screenshots_dir(&game_id);
+        fs::create_dir_all(&dir)
+            .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "创建截图目录失败", e))?;
+
+        let timestamp = Local::now().format("%Y%m%d%H%M%S%3f").to_string();
+        let filename = format!("{}_capture_{}.png", game_id, timestamp);
+        let dest = crate::path_manager::screenshot_path(&game_id, &filename);
+
+        image
+            .save(&dest)
+            .map_err(|e| AppError::wrap(ErrorCode::DataWriteFailed, "保存截图文件失败", e))?;
+
+        let thumb_dest = crate::path_manager::screenshot_thumb_path(&game_id, &filename);
+        if let Err(e) = generate_thumbnail(&dest, &thumb_dest) {
+            log::warn!("生成缩略图失败 ({}): {}", filename, e);
+        }
+
+        let mut data = get_cached_games()?;
+        if let Some(game) = data.games.iter_mut().find(|g| g.id == game_id) {
+            game.screenshots.push(filename.clone());
+            data_store::write_games_only(&data.games)?;
+            update_cache(&data);
+        }
+
+        let path_str = dest.to_string_lossy().to_string();
+        crate::logger::log_screenshot_capture(&game_id, &path_str, true, None);
+        info!("截图已捕获并保存: {}", path_str);
+
+        play_screenshot_sound();
+
+        Ok(path_str)
+    })
+    .await
+    .unwrap_or_else(|e| {
+        crate::logger::log_screenshot_capture(&game_id_clone, "", false, Some(&e.to_string()));
         Err(AppError::new(
             ErrorCode::InternalError,
             format!("任务执行失败: {}", e),

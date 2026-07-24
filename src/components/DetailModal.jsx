@@ -16,14 +16,8 @@ export default function DetailModal({ gameId, onClose, onEdit, onDelete, onRefre
   const openPreview = async (filename) => {
     setPreviewScreenshot({ filename, loading: true });
     try {
-      const path = await invoke('get_screenshot_path', { gameId, filename });
-      if (import.meta.env.DEV) {
-        const isThumb = path.includes('_thumb');
-        console.log(
-          `[截图诊断-前端] openPreview 原图 | filename=${filename} | path=${path} | 是缩略图=${isThumb}`,
-        );
-      }
-      setPreviewScreenshot({ filename, url: convertFileSrc(path), loading: false });
+      const base64 = await invoke('get_screenshot_base64', { gameId, filename });
+      setPreviewScreenshot({ filename, url: base64, loading: false });
     } catch { setPreviewScreenshot(null); }
   };
 
@@ -183,7 +177,7 @@ export default function DetailModal({ gameId, onClose, onEdit, onDelete, onRefre
             <p>{escapeHtml(game.description || '暂无简介')}</p>
             <h4>启动路径</h4>
             <code>{escapeHtml(game.path)}</code>
-            <h4>游戏截图</h4>
+            <h4>游戏截图 <span className="screenshot-hotkey-hint">（游戏进程中按 F12 截图）</span></h4>
             <div className="screenshots-section">
               <div className="screenshots-grid">
                 {screenshots.length === 0 ? (

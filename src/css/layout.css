@@ -430,17 +430,6 @@
 }
 
 /* ==================== 悬浮快捷工具栏(灵动岛) ==================== */
-/* 不可见的触发区:位于游戏列表上方,鼠标进入才显示工具栏 */
-.float-toolbar-trigger {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
-  z-index: 9;
-  background: transparent;
-}
-
 .float-toolbar {
   position: absolute;
   top: 52px;

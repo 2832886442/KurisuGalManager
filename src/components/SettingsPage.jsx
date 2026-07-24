@@ -64,19 +64,19 @@ export default function SettingsPage() {
   const applyStartup = (newStartup) => {
     setStartup(newStartup);
     localStorage.setItem('startup', newStartup ? 'true' : 'false');
-    invoke('set_startup', { enabled: newStartup }).catch(() => {});
+    invoke('set_startup', { enabled: newStartup }).catch(() => { });
   };
 
   const applyCloseAction = (newAction) => {
     setCloseAction(newAction);
     localStorage.setItem('close-action', newAction);
-    invoke('save_settings', { settings: { closeAction: newAction } }).catch(() => {});
+    invoke('save_settings', { settings: { closeAction: newAction } }).catch(() => { });
   };
 
   const applyDefaultView = (newView) => {
     setDefaultView(newView);
     localStorage.setItem('default-view', newView);
-    invoke('save_settings', { settings: { defaultView: newView } }).catch(() => {});
+    invoke('save_settings', { settings: { defaultView: newView } }).catch(() => { });
   };
 
   const applyPageSize = (newSize) => {
@@ -149,11 +149,11 @@ export default function SettingsPage() {
   };
 
   const themeOptions = [
-    { value: 'dark',   label: '暗色', icon: 'moon' },
-    { value: 'light',  label: '亮色', icon: 'sun' },
-    { value: 'neon',   label: 'Neon', icon: 'rocket' },
-    { value: 'glass',  label: 'Glass', icon: 'image' },
-    { value: 'nexus',  label: 'Nexus', icon: 'sparkles' },
+    { value: 'dark', label: '暗色', icon: 'moon' },
+    { value: 'light', label: '亮色', icon: 'sun' },
+    { value: 'neon', label: 'Neon', icon: 'rocket' },
+    { value: 'glass', label: 'Glass', icon: 'image' },
+    { value: 'nexus', label: 'Nexus', icon: 'sparkles' },
     { value: 'system', label: '跟随系统', icon: 'monitor' },
   ];
 

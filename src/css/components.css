@@ -365,6 +365,7 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
+  pointer-events: none;
   transition: opacity var(--transition-fast), background var(--transition-fast);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -372,6 +373,7 @@
 
 .game-card:hover .card-launch-btn {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .card-launch-btn:hover {
@@ -2460,6 +2462,12 @@
 .screenshot-preview-name {
   font-size: var(--fs-xs);
   color: var(--text-muted);
+}
+
+.screenshot-hotkey-hint {
+  font-size: var(--fs-xs);
+  font-weight: normal;
+  color: var(--accent);
 }
 
 /* ==================== 数据迁移确认弹窗 ==================== */

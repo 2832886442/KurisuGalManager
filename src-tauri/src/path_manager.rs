@@ -112,6 +112,7 @@ pub fn settings_file() -> PathBuf {
 }
 
 /// 获取操作日志路径
+#[allow(dead_code)]
 pub fn operation_log_file() -> PathBuf {
     logs_dir().join("operation_log.jsonl")
 }
@@ -379,6 +380,10 @@ pub fn assets_dir() -> PathBuf {
     data_root().join("Assets")
 }
 
+pub fn sound_dir() -> PathBuf {
+    data_root().join("sound")
+}
+
 pub fn logo_file() -> PathBuf {
     let assets = assets_dir();
     // 尝试各种格式
@@ -475,6 +480,7 @@ fn ensure_data_dirs() {
         saves_dir(),
         cache_dir(),
         screenshots_dir(),
+        sound_dir(),
     ];
     for d in &dirs {
         let _ = fs::create_dir_all(d);

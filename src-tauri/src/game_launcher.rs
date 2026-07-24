@@ -12,6 +12,8 @@ pub struct GameProcessManager {
     children: HashMap<String, Child>,
     /// 无 Child 句柄的运行中路径（由 launch_game 异步监控任务管理）
     running_paths: Vec<String>,
+    /// 运行中游戏的 game_id -> path 映射
+    running_games: HashMap<String, String>,
 }
 
 impl GameProcessManager {
@@ -19,6 +21,7 @@ impl GameProcessManager {
         Self {
             children: HashMap::new(),
             running_paths: Vec::new(),
+            running_games: HashMap::new(),
         }
     }
 
@@ -30,6 +33,36 @@ impl GameProcessManager {
 
     pub fn unregister_running(&mut self, path: &str) {
         self.running_paths.retain(|p| p != path);
+    }
+
+    pub fn register_game(&mut self, game_id: &str, path: &str) {
+        self.running_games
+            .insert(game_id.to_string(), path.to_string());
+    }
+
+    pub fn unregister_game(&mut self, game_id: &str) {
+        self.running_games.remove(game_id);
+    }
+
+    pub fn get_running_game_id(&mut self) -> Option<String> {
+        let s = System::new_all();
+
+        let running_game_paths: std::collections::HashSet<&String> =
+            self.running_games.values().collect();
+
+        self.running_paths.retain(|path| {
+            if running_game_paths.contains(path) {
+                for process in s.processes().values() {
+                    if let Some(exe) = process.exe() {
+                        if exe.to_string_lossy().contains(path) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            false
+        });
+        self.running_games.keys().next().cloned()
     }
 
     pub fn running_paths(&mut self) -> Vec<String> {
@@ -97,6 +130,29 @@ pub fn get_running_games() -> Result<Vec<String>, AppError> {
         )
     })?;
     Ok(mgr.running_paths())
+}
+
+/// 注册运行中的游戏（game_id 和 path 的映射）
+pub fn register_running_game(game_id: &str, path: &str) {
+    if let Ok(mut mgr) = get_process_manager().lock() {
+        mgr.register_game(game_id, path);
+    }
+}
+
+/// 注销运行中的游戏
+pub fn unregister_running_game(game_id: &str) {
+    if let Ok(mut mgr) = get_process_manager().lock() {
+        mgr.unregister_game(game_id);
+    }
+}
+
+/// 获取当前运行中的游戏 ID
+pub fn get_current_running_game_id() -> Option<String> {
+    if let Ok(mut mgr) = get_process_manager().lock() {
+        mgr.get_running_game_id()
+    } else {
+        None
+    }
 }
 
 /// 结束游戏进程

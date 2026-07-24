@@ -26,6 +26,7 @@ pub enum ErrorCode {
     StartupConfigFailed,
     InternalError,
     InvalidInput,
+    PlatformNotSupported,
 }
 
 /// 统一错误类型
